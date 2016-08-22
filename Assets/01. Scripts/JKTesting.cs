@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using JK.Grids;
+using System.IO;
 
 public class JKTesting : MonoBehaviour
 {
+	
 	public FlatHex flatHex;
 	public SpriteRenderer cellBorder;
 	public Unit scout;
@@ -15,13 +17,15 @@ public class JKTesting : MonoBehaviour
 	public SelectionContext selectionContext;
 	public HightlightedContext highlightedContext;
 
+	public BattleState battleState;
+
 	FlatHex BattleGrid;
 	SpriteRenderer gridCursor;
 	Vector3 selectedgridPoint;
 	Unit selectedUnit;
 	Unit highlightedUnit;
 	SpriteRenderer selectedUnitCursor;
-	List<Vector3> highlightedCells = new List<Vector3> ();
+	List<Vector3> highlightedMoves = new List<Vector3> ();
 
 	void Start ()
 	{
@@ -31,6 +35,16 @@ public class JKTesting : MonoBehaviour
 		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
 		BattleGrid.onRightClickCell += BattleGrid_onRightClickCell;
 		selectionContext = SelectionContext.nothing;
+
+		if (gridCursor == null)
+			gridCursor = Instantiate (cellBorder) as SpriteRenderer;
+
+		gridCursor.gameObject.SetActive (false);
+
+		if (selectedUnitCursor == null)
+			selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
+
+		selectedUnitCursor.gameObject.SetActive (false);
 	}
 
 	void Update ()
@@ -39,7 +53,7 @@ public class JKTesting : MonoBehaviour
 		{
 			var unit = Instantiate (scout);
 			unit.transform.position = selectedgridPoint;
-			BattleGrid.RegisterObject (selectedgridPoint, unit.gameObject, CellContents.unit);
+			BattleGrid.RegisterUnit (selectedgridPoint, unit, CellContext.unit);
 			unit.faction = player1;
 		}
 
@@ -47,47 +61,39 @@ public class JKTesting : MonoBehaviour
 		{
 			var unit = Instantiate (scout);
 			unit.transform.position = selectedgridPoint;
-			BattleGrid.RegisterObject (selectedgridPoint, unit.gameObject, CellContents.unit);
+			BattleGrid.RegisterUnit (selectedgridPoint, unit, CellContext.unit);
 			unit.faction = player2;
+		}
+
+		if (Input.GetKeyDown (KeyCode.Z))
+		{
+			SaveState ();
 		}
 	}
 
-
-	void BattleGrid_onRightClickCell (Vector3 _point, Cell _cell)
+	void BattleGrid_onRightClickCell (Vector3 _point, BattleCell _cell)
 	{
 
 
 	}
 
-	void BattleGrid_onMouseOverCell (Vector3 _point, Cell _cell)
+	void BattleGrid_onMouseOverCell (Vector3 _point, BattleCell _cell)
 	{
-		if (gridCursor == null)
-			gridCursor = Instantiate (cellBorder) as SpriteRenderer;
-
-		var context = _cell.contents; 
-
-		switch (context)
+		switch (_cell.context)
 		{
-		case CellContents.empty:
-			gridCursor.color = Color.gray;
-			gridCursor.transform.position = _point;
-			selectedgridPoint = _point;
-			highlightedUnit = null;
-			highlightedContext = HightlightedContext.nothing;
+		case CellContext.empty:
+			highlightEmptyCell (_point, _cell);
 			break;
-		case CellContents.unit:			
+		case CellContext.unit:			
 			highlightUnit (_point, _cell);
 			break;
-		case CellContents.move:
+		case CellContext.move:
 			highlightedContext = HightlightedContext.move;
 			break;
 		}
-
-
-
 	}
 
-	void BattleGrid_onClickCell (Vector3 _point, Cell _cell)
+	void BattleGrid_onClickCell (Vector3 _point, BattleCell _cell)
 	{
 		switch (selectionContext)
 		{
@@ -95,7 +101,7 @@ public class JKTesting : MonoBehaviour
 			{
 				switch (highlightedContext)
 				{
-				case HightlightedContext.enemy:
+				case HightlightedContext.target:
 					break;
 				case HightlightedContext.unit:
 					selectUnit (_point, _cell);
@@ -111,49 +117,44 @@ public class JKTesting : MonoBehaviour
 			{
 				switch (highlightedContext)
 				{
-				case HightlightedContext.enemy:
+				case HightlightedContext.target:
 					break;
 				case HightlightedContext.unit:
 					selectUnit (_point, _cell);
+					highlightMove ();
 					break;
 				case HightlightedContext.nothing:
 					deselectUnit ();
+					unHighlightMoves (highlightedMoves);
 					break;
 				case HightlightedContext.move:
 					moveUnit (_point, _cell);
+					deselectUnit ();
+					highlightUnit (_point, _cell);
 					break;
-
 				}
 			}
 			break;
-		
 		}
-
-
-
 	}
 
-	public enum SelectionContext
+	#region Cell Highlighting
+
+	void highlightEmptyCell (Vector3 _point, BattleCell _cell)
 	{
-		nothing = 0,
-		unit = 1,
-		enemy = 2
+		gridCursor.color = Color.gray;
+		gridCursor.transform.position = _point;
+		gridCursor.gameObject.SetActive (true);
+		selectedgridPoint = _point;
+		highlightedUnit = null;
+		highlightedContext = HightlightedContext.nothing;
 	}
 
-	public enum HightlightedContext
-	{
-		nothing = 0,
-		unit = 1,
-		enemy = 2,
-		move = 3
-	}
-
-
-	void highlightUnit (Vector3 _point, Cell _cell)
+	void highlightUnit (Vector3 _point, BattleCell _cell)
 	{
 		gridCursor.transform.position = _point;
 		selectedgridPoint = _point;
-		highlightedUnit = _cell.obj.GetComponent<Unit> ();
+		highlightedUnit = _cell.unit;
 
 		if (highlightedUnit.faction == myFaction)
 		{
@@ -161,17 +162,50 @@ public class JKTesting : MonoBehaviour
 			gridCursor.color = Color.green;
 		} else
 		{
-			highlightedContext = HightlightedContext.enemy;
+			highlightedContext = HightlightedContext.target;
 			gridCursor.color = Color.red;
 		}
 	}
 
-	void selectUnit (Vector3 _point, Cell _cell)
+	void highlightMove ()
 	{
-		selectedUnit = _cell.obj.GetComponent<Unit> ();
+		if (selectedUnit == null)
+			return;
+
+		var moves = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Movement);
+	
+
+		foreach (var point in moves)
+		{
+			var c = BattleGrid.GetCell (point);
+			c.Color = Color.gray;
+			c.context = CellContext.move;
+		}
+		highlightedMoves = moves;
+
+	}
+
+	void unHighlightMoves (List<Vector3> _points)
+	{
+		foreach (var point in _points)
+		{
+			var cell = BattleGrid.GetCell (point);
+			cell.Color = BattleGrid.flatHexCell.Color;
+			if (cell.context == CellContext.move)
+				cell.context = CellContext.empty;
+		}
+
+	}
+
+	#endregion
+
+	#region Cell Selection
+
+	void selectUnit (Vector3 _point, BattleCell _cell)
+	{
+		selectedUnit = _cell.unit;
 		selectionContext = SelectionContext.unit;
-		if (selectedUnitCursor == null)
-			selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
+
 		selectedUnitCursor.gameObject.SetActive (true);
 		selectedUnitCursor.color = Color.blue;
 		selectedUnitCursor.transform.position = _point;
@@ -184,44 +218,42 @@ public class JKTesting : MonoBehaviour
 		selectedUnitCursor.gameObject.SetActive (false);
 	}
 
-	void highlightMove ()
-	{
-		if (selectedUnit == null)
-			return;
-	
-		var moves = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Movement);
-
-		foreach (var point in moves)
-		{
-			var c = BattleGrid.GetCell (point);
-			c.Color = Color.gray;
-			c.contents = CellContents.move;
-		}
-		highlightedCells = moves;
-	
-	}
-
-	void moveUnit (Vector3 _point, Cell _cell)
+	void moveUnit (Vector3 _point, BattleCell _cell)
 	{
 		BattleGrid.UnRegisterObject (selectedUnit.transform.position);
-		BattleGrid.RegisterObject (_point, selectedUnit.gameObject, CellContents.unit);
+		BattleGrid.RegisterUnit (_point, selectedUnit, CellContext.unit);
 		selectedUnit.transform.position = _point;
-		unHighlightCells (highlightedCells);
+		unHighlightMoves (highlightedMoves);
 		deselectUnit ();
 		selectUnit (_point, _cell);
-
-
 	}
 
-	void unHighlightCells (List<Vector3> _points)
+	#endregion
+
+
+	public void SaveState ()
 	{
-		foreach (var point in _points)
-		{
-			var cell = BattleGrid.GetCell (point);
-			cell.Color = BattleGrid.flatHexCell.Color;
-		}
+		
+		var state = new BattleState (BattleGrid.State);
+		var JSON = JsonUtility.ToJson (state, true);
+
+		File.WriteAllText (Application.dataPath + "state.json", JSON);
+
+		Debug.Log (state);
 	}
+}
 
+public enum SelectionContext
+{
+	nothing = 0,
+	unit = 1,
+	target = 2
+}
 
-
+public enum HightlightedContext
+{
+	nothing = 0,
+	unit = 1,
+	target = 2,
+	move = 3
 }

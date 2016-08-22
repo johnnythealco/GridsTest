@@ -14,17 +14,19 @@ namespace JK
 
 			public int size;
 			Vector2 padding;
-			public Cell flatHexCell;
+			public BattleCell flatHexCell;
 
 			FlatHexPoint mouseGridPoint;
 			FlatHexPoint newMouseGridPoint;
 
 
-			public FlatHexGrid<Cell> Grid{ get; set; }
+			public FlatHexGrid<BattleCell> Grid{ get; set; }
 
 			public IMap3D<FlatHexPoint> Map{ get; set; }
 
-			public delegate void FlatHexDelegate (Vector3 _point, Cell _cell);
+			public List<BattleCellState> State;
+
+			public delegate void FlatHexDelegate (Vector3 _point, BattleCell _cell);
 
 			public event FlatHexDelegate onClickCell;
 			public event FlatHexDelegate onMouseOverCell;
@@ -40,8 +42,9 @@ namespace JK
 				var spacing = flatHexCell.Dimensions;
 				spacing.Scale (padding);
 
-				Grid = FlatHexGrid<Cell>.Hexagon (size);
+				Grid = FlatHexGrid<BattleCell>.Hexagon (size);
 				Map = new FlatHexMap (spacing).AnchorCellMiddleCenter ().To3DXZ ();
+				State = new List<BattleCellState> ();
 				foreach (var point in Grid)
 				{
 					var cell = Instantiate (flatHexCell);
@@ -52,6 +55,7 @@ namespace JK
 
 					cell.name = point.ToString ();
 					Grid [point] = cell;
+
 
 				}
 				positionCollider ();
@@ -84,7 +88,7 @@ namespace JK
 				List<FlatHexPoint> path = new List<FlatHexPoint> ();
 
 
-				var _path = Algorithms.AStar<Cell, FlatHexPoint>
+				var _path = Algorithms.AStar<BattleCell, FlatHexPoint>
 		(Grid, start, end,
 					            (p, q) => p.DistanceFrom (q),
 					            c => c.isAccessible,
@@ -177,21 +181,17 @@ namespace JK
 				Debug.Log ("Grid Point : " + Map [_point].ToString ());
 			}
 
-			public Cell GetCell (Vector3 _point)
+			public BattleCell GetCell (Vector3 _point)
 			{
 				return Grid [Map [_point]];
 			}
 
-			public GameObject GetCellGameObject (Vector3 _point)
-			{
-				var cell = Grid [Map [_point]];
-				return cell.obj;
-			}
 
-			public CellContents GetCellContents (Vector3 _point)
+
+			public CellContext GetCellContents (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
-				return cell.contents;
+				return cell.context;
 			}
 
 			public bool GetCellAccessiblity (Vector3 _point)
@@ -200,18 +200,19 @@ namespace JK
 				return cell.isAccessible;
 			}
 
-			public void RegisterObject (Vector3 _point, GameObject _obj, CellContents _contents)
+			public void RegisterUnit (Vector3 _point, Unit _unit, CellContext _contents)
 			{
 				var cell = Grid [Map [_point]];
-				cell.obj = _obj;
-				cell.contents = _contents;
+				cell.unit = _unit;
+				cell.context = _contents;
 				cell.isAccessible = false;
+				State.Add (new BattleCellState (cell));
 			}
 
 			public void UnRegisterObject (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
-				cell.contents = CellContents.empty;
+				cell.context = CellContext.empty;
 				cell.isAccessible = true;
 			}
 
@@ -219,7 +220,7 @@ namespace JK
 			{
 				var point = Map [_point];
 				List<Vector3> result = new List<Vector3> ();
-				var area = Algorithms.GetPointsInRange<Cell, FlatHexPoint>
+				var area = Algorithms.GetPointsInRange<BattleCell, FlatHexPoint>
 								(Grid, point,
 					           JKCell => JKCell.isAccessible,
 					           (p, q) => 1,
@@ -230,6 +231,7 @@ namespace JK
 					var worldpoint = Map [_gridPoint];
 					result.Add (worldpoint);
 				}
+				result.Remove (_point);
 				return result;
 			}
 
