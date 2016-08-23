@@ -9,11 +9,9 @@ public class JKTesting : MonoBehaviour
 	
 	public FlatHex flatHex;
 	public SpriteRenderer cellBorder;
-	public Unit scout;
-	public Unit Destroyer;
-	public Faction myFaction;
-	public Faction player1;
-	public Faction player2;
+	public Unit fighter;
+
+	public string myFaction = "player1";
 	public SelectionContext selectionContext;
 	public HightlightedContext highlightedContext;
 
@@ -21,9 +19,12 @@ public class JKTesting : MonoBehaviour
 
 	FlatHex BattleGrid;
 	SpriteRenderer gridCursor;
-	Vector3 selectedgridPoint;
-	Unit selectedUnit;
-	Unit highlightedUnit;
+	public Vector3 selectedPoint;
+	public Vector3 highlightedPoint;
+	UnitModel selectedUnit;
+	UnitModel highlightedUnit;
+
+
 	SpriteRenderer selectedUnitCursor;
 	List<Vector3> highlightedMoves = new List<Vector3> ();
 
@@ -49,26 +50,22 @@ public class JKTesting : MonoBehaviour
 
 	void Update ()
 	{
-		if (Input.GetKeyDown (KeyCode.S) && BattleGrid.GetCellAccessiblity (selectedgridPoint))
+		
+		if (Input.GetKeyDown (KeyCode.S) && BattleGrid.GetCellAccessiblity (highlightedPoint))
 		{
-			var unit = Instantiate (scout);
-			unit.transform.position = selectedgridPoint;
-			BattleGrid.RegisterUnit (selectedgridPoint, unit, CellContext.unit);
-			unit.faction = player1;
+			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
+
+			var newUnit = new Unit (newUnitType, myFaction);
+			DeployUnit (newUnit, highlightedPoint); 
+
 		}
 
-		if (Input.GetKeyDown (KeyCode.E) && BattleGrid.GetCellAccessiblity (selectedgridPoint))
-		{
-			var unit = Instantiate (scout);
-			unit.transform.position = selectedgridPoint;
-			BattleGrid.RegisterUnit (selectedgridPoint, unit, CellContext.unit);
-			unit.faction = player2;
-		}
 
-		if (Input.GetKeyDown (KeyCode.Z))
-		{
-			SaveState ();
-		}
+//
+//		if (Input.GetKeyDown (KeyCode.Z))
+//		{
+//			SaveState ();
+//		}
 	}
 
 	void BattleGrid_onRightClickCell (Vector3 _point, BattleCell _cell)
@@ -145,7 +142,7 @@ public class JKTesting : MonoBehaviour
 		gridCursor.color = Color.gray;
 		gridCursor.transform.position = _point;
 		gridCursor.gameObject.SetActive (true);
-		selectedgridPoint = _point;
+		highlightedPoint = _point;
 		highlightedUnit = null;
 		highlightedContext = HightlightedContext.nothing;
 	}
@@ -153,7 +150,7 @@ public class JKTesting : MonoBehaviour
 	void highlightUnit (Vector3 _point, BattleCell _cell)
 	{
 		gridCursor.transform.position = _point;
-		selectedgridPoint = _point;
+		highlightedPoint = _point;
 		highlightedUnit = _cell.unit;
 
 		if (highlightedUnit.faction == myFaction)
@@ -204,6 +201,7 @@ public class JKTesting : MonoBehaviour
 	void selectUnit (Vector3 _point, BattleCell _cell)
 	{
 		selectedUnit = _cell.unit;
+
 		selectionContext = SelectionContext.unit;
 
 		selectedUnitCursor.gameObject.SetActive (true);
@@ -218,6 +216,7 @@ public class JKTesting : MonoBehaviour
 		selectedUnitCursor.gameObject.SetActive (false);
 	}
 
+
 	void moveUnit (Vector3 _point, BattleCell _cell)
 	{
 		BattleGrid.UnRegisterObject (selectedUnit.transform.position);
@@ -229,6 +228,20 @@ public class JKTesting : MonoBehaviour
 	}
 
 	#endregion
+
+
+	void DeployUnit (Unit _unit, Vector3 _position)
+	{
+
+		var register = Game.Manager.register;
+		var unitType = register.GetUnitType (_unit.unitType);
+		var unitModel = (UnitModel)Instantiate (unitType); 
+		unitModel.transform.position = _position;
+		unitModel.setUnitState (_unit);
+
+		//Register on BattelGrid
+		BattleGrid.RegisterUnit (_position, unitModel, CellContext.unit);		
+	}
 
 
 	public void SaveState ()

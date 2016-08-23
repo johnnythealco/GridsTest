@@ -146,6 +146,7 @@ namespace JK
 				if (Input.GetMouseButtonDown (1))
 				{
 					onRightClickCell.Invoke (Map [mouseGridPoint], Grid [mouseGridPoint]);
+
 				}
 			}
 
@@ -200,13 +201,12 @@ namespace JK
 				return cell.isAccessible;
 			}
 
-			public void RegisterUnit (Vector3 _point, Unit _unit, CellContext _contents)
+			public void RegisterUnit (Vector3 _point, UnitModel _unit, CellContext _contents)
 			{
 				var cell = Grid [Map [_point]];
 				cell.unit = _unit;
 				cell.context = _contents;
 				cell.isAccessible = false;
-				State.Add (new BattleCellState (cell));
 			}
 
 			public void UnRegisterObject (Vector3 _point)

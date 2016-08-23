@@ -14,7 +14,7 @@ namespace JK
 			public bool isAccessible = true;
 			public float Cost = 1;
 			public CellContext context;
-			public Unit unit;
+			public UnitModel unit;
 		}
 	}
 }
@@ -27,7 +27,6 @@ public class BattleCellState
 	public bool isAccessible = true;
 	public float Cost = 1;
 	public CellContext context;
-	public UnitState unitState;
 
 	public BattleCellState ()
 	{
