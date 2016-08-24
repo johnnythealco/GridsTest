@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Gamelogic;
 using Gamelogic.Grids;
+using System.Linq;
 
 namespace JK
 {
@@ -31,6 +32,8 @@ namespace JK
 			public event FlatHexDelegate onClickCell;
 			public event FlatHexDelegate onMouseOverCell;
 			public event FlatHexDelegate onRightClickCell;
+
+			public List<BattleCell> occupiedCells = new List<BattleCell> ();
 
 
 			#region Grid Building
@@ -88,6 +91,7 @@ namespace JK
 				List<FlatHexPoint> path = new List<FlatHexPoint> ();
 
 
+
 				var _path = Algorithms.AStar<BattleCell, FlatHexPoint>
 		(Grid, start, end,
 					            (p, q) => p.DistanceFrom (q),
@@ -121,6 +125,34 @@ namespace JK
 					path.Add (Map [step]);
 
 				}
+
+				return path;
+			}
+
+			public List<Vector3> getPathToTarget (Vector3 start, Vector3 end)
+			{
+				List<Vector3> path = new List<Vector3> ();
+				var _start = Map [start];
+				var _end = Map [end];
+
+				Grid [_end].isAccessible = true;
+
+				var _path = getGridPath (_start, _end);
+
+				foreach (var step in _path)
+				{
+					path.Add (Map [step]);
+
+				}
+
+				var target = path.Last (); 
+				var source = path.First ();
+				path.Remove (target);
+				path.Remove (source);
+
+				Debug.Log (" Path Lenght : " + path.Count () + " Steps.");
+
+				Grid [_end].isAccessible = false;
 
 				return path;
 			}
@@ -207,6 +239,8 @@ namespace JK
 				cell.unit = _unit;
 				cell.context = _contents;
 				cell.isAccessible = false;
+
+				occupiedCells.Add (cell);
 			}
 
 			public void UnRegisterObject (Vector3 _point)
@@ -214,6 +248,7 @@ namespace JK
 				var cell = Grid [Map [_point]];
 				cell.context = CellContext.empty;
 				cell.isAccessible = true;
+				occupiedCells.Remove (cell);
 			}
 
 			public List<Vector3> GetRange (Vector3 _point, int _radius)
@@ -240,6 +275,7 @@ namespace JK
 
 		}
 
+		#region Spawnpoints
 		public class SpawnPoint
 		{
 			public string name;
@@ -286,5 +322,6 @@ namespace JK
 		
 			}
 		}
+		#endregion
 	}
 }

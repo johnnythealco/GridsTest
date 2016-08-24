@@ -9,6 +9,7 @@ public class Unit
 	public int Movement;
 	public int attackRange;
 	public int health;
+	public int damage;
 
 	public Unit (UnitModel _type, string _faction)
 	{
@@ -17,6 +18,7 @@ public class Unit
 		this.Movement = _type.Movement;
 		this.attackRange = _type.AttackRange;
 		this.health = _type.Health;
+		this.damage = _type.Damage;
 	}
 
 
