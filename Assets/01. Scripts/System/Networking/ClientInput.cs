@@ -30,6 +30,7 @@ public class ClientInput :  NetworkBehaviour
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
 			this.isPlayer = this.isLocalPlayer;
+			Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
 		}
 
 		if (!hasAuthority)
@@ -61,40 +62,64 @@ public class ClientInput :  NetworkBehaviour
 
 	void Update ()
 	{
-//		if (Input.GetKeyDown (KeyCode.Space))
+
 			
 
 	}
 
 
-	//	[Command]
-	//	void CmdAddPlayer (string JSON_Player)
-	//	{
-	//		var player = JsonUtility.FromJson<Player> (JSON_Player);
-	//		Game.Manager.state.Players.Add (player);
-	//		RpcAddPlayer (JSON_Player);
-	//	}
-	//
-	//	[ClientRpc]
-	//	void RpcAddPlayer (string JSON_Player)
-	//	{
-	//
-	//		var player = JsonUtility.FromJson<Player> (JSON_Player);
-	//		if (!this.isServer)
-	//			Game.Manager.state.Players.Add (player);
-	//
-	//
-	//	}
-	//
-	//	void CreatePlayer ()
-	//	{
-	//		var PlayerID = (short)this.netId.Value;
-	//		var PlayerName = "Player " + PlayerID.ToString ();
-	//		var newPlayerObject = new Player (PlayerName, PlayerID);
-	//		var JSON_Player = JsonUtility.ToJson (newPlayerObject);
-	//
-	//		CmdAddPlayer (JSON_Player);
-	//	}
+	[Command]
+	public void CmdTest (string _msg)
+	{		
+		
+		RpcTest (_msg);
+	}
+
+	[ClientRpc]
+	void RpcTest (string _msg)
+	{
+		string message = _msg + " connected on Network ID " + this.netId + " sent a command";
+		Debug.Log (message);	
+	
+	}
+
+	[Command]
+	public void CmdBattleCommand (string _type, string _param1, string _param2)
+	{
+		RpcBattleRpc (_type, _param1, _param2);
+	}
+
+	[ClientRpc]
+	public void RpcBattleRpc (string _type, string _param1, string _param2)
+	{
+		switch (_type)
+		{
+		case "Deploy":
+			{
+				var _unit = JsonUtility.FromJson<Unit> (_param1);
+				var _position = JsonUtility.FromJson<Vector3> (_param2); 
+				Game.BattleManager.DeployUnit (_unit, _position);
+			}
+			break;
+		case "Move":
+			{
+				var _position = JsonUtility.FromJson<Vector3> (_param1);
+				var _destination = JsonUtility.FromJson<Vector3> (_param2); 
+				Game.BattleManager.moveUnit (_position, _destination);
+			}
+			break;
+		case "BasicAttack":
+			{
+				var _attacker = JsonUtility.FromJson<Vector3> (_param1);
+				var _target = JsonUtility.FromJson<Vector3> (_param2); 
+				Game.BattleManager.BasicAttack (_attacker, _target);
+			}
+			break;
+
+
+		}
+		
+	}
 
 
 }

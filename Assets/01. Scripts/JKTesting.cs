@@ -11,7 +11,6 @@ public class JKTesting : MonoBehaviour
 	public SpriteRenderer cellBorder;
 	public Unit fighter;
 
-	public string myFaction = "player1";
 	public string enemyFaction = "Enemy";
 	public SelectionContext selectionContext;
 	public HightlightedContext highlightedContext;
@@ -37,6 +36,7 @@ public class JKTesting : MonoBehaviour
 
 	void Start ()
 	{
+		Game.BattleManager = this;
 		BattleGrid = Instantiate (flatHex) as FlatHex;
 		BattleGrid.BuildGrid ();
 		BattleGrid.onClickCell += BattleGrid_onClickCell;
@@ -62,8 +62,8 @@ public class JKTesting : MonoBehaviour
 		{
 			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
 
-			var newUnit = new Unit (newUnitType, myFaction);
-			DeployUnit (newUnit, highlightedPoint); 
+			var newUnit = new Unit (newUnitType, Game.PlayerName);
+			netWorkDeploy (newUnit, highlightedPoint); 
 
 		}
 
@@ -76,7 +76,8 @@ public class JKTesting : MonoBehaviour
 
 		}
 
-
+		if (Input.GetKeyDown (KeyCode.Space))
+			TestCmd ();
 
 	}
 
@@ -218,7 +219,7 @@ public class JKTesting : MonoBehaviour
 			{
 				highlightedUnit = _cell.unit;
 
-				if (highlightedUnit.faction == myFaction)
+				if (highlightedUnit.faction == Game.PlayerName)
 				{
 					highlightedContext = HightlightedContext.unit;
 				} else
@@ -261,22 +262,19 @@ public class JKTesting : MonoBehaviour
 		if (selectedUnit == null)
 			return;
 
-		var range = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Movement + selectedUnit.AttackRange);
+		var occupiedCells = BattleGrid.occupiedCells;
 		targets.Clear ();
 
-		foreach (var point in range)
+		foreach (var cell in occupiedCells)
 		{
-			var c = BattleGrid.GetCell (point);
-			if (c.context == CellContext.unit)
+			if (cell.context == CellContext.unit)
 			{
-				if (c.unit.faction != selectedUnit.faction)
+				if (cell.unit.faction != Game.PlayerName)
 				{
-					targets.Add (point);
+					targets.Add (cell.transform.position);
 				}
 			}
-
 		}
-		
 	}
 
 	void clearMoves ()
@@ -333,13 +331,16 @@ public class JKTesting : MonoBehaviour
 					showMoves ();
 					break;
 				case HightlightedContext.move:
-					moveUnit (selectedUnit, _point);
+					netWorkMove (selectedUnit.transform.position, highlightedPoint);
 					clearMoves ();
 					clearSelection ();
 					highlightCell (_point, _cell);
 					break;
 				case HightlightedContext.target:
-					BasicAttack (selectedUnit, _cell.unit);
+					netWorkBasicAttack (selectedUnit.transform.position, highlightedPoint);
+					clearMoves ();
+					clearSelection ();
+					highlightCell (highlightedPoint, highlightedCell);
 					break;
 				case HightlightedContext.enemy:
 					break;
@@ -372,34 +373,69 @@ public class JKTesting : MonoBehaviour
 
 	#region Actions
 
-	void moveUnit (UnitModel _unit, Vector3 _point)
+	void netWorkDeploy (Unit _unit, Vector3 _position)
 	{
-		var path = BattleGrid.getGridPath (_unit.transform.position, _point);
+		string type = "Deploy";
+		var _param1 = JsonUtility.ToJson (_unit);
+		var _param2 = JsonUtility.ToJson (_position);
+		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+	}
+
+	void netWorkBasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
+	{
+		
+		string type = "BasicAttack";
+		var _param1 = JsonUtility.ToJson (_attackerPostion);
+		var _param2 = JsonUtility.ToJson (_targetPosition);
+		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+	}
+
+	void netWorkMove (Vector3 _position, Vector3 _destination)
+	{
+		string type = "Move";
+		var _param1 = JsonUtility.ToJson (_position);
+		var _param2 = JsonUtility.ToJson (_destination);
+		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+	}
+
+	public void moveUnit (Vector3 _position, Vector3 _destination)
+	{
+		var _unit = BattleGrid.GetCell (_position).unit;
+		var path = BattleGrid.getGridPath (_position, _destination);
 
 		foreach (var step in path)
 		{
 			BattleGrid.UnRegisterObject (_unit.transform.position);
 			BattleGrid.RegisterUnit (step, _unit, CellContext.unit);
 			_unit.transform.position = step;
+			JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " Move to " + step.ToString ());
 		}
 
 	}
 
-	void BasicAttack (UnitModel _unit, UnitModel _target)
+	public void BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
 	{
+		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
+		var _target = BattleGrid.GetCell (_targetPosition).unit;
+		
 		var destroyed = _target.TakeDirectDamage (_unit.Damage);
 
-		Debug.Log (_unit.faction + " " + _unit.DsiplayName + " : Attacks " + _target.faction + " " + _target.DsiplayName);
-		Debug.Log ("Dealing " + _unit.Damage + " Damage");
+		JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " : Attacks " + _target.faction + " " + _target.DsiplayName);
+		JKLog.Log ("Dealing " + _unit.Damage + " Damage");
 
 		if (destroyed)
 		{
+			BattleGrid.UnRegisterObject (_target.transform.position);
 			_target.DestroyUnit ();
-			Debug.Log (_target.faction + " " + _target.DsiplayName + " was destroyed! : ( ");
+			JKLog.Log (_target.faction + " " + _target.DsiplayName + " was destroyed! : ( ");
+
 		}
 	}
 
-	void DeployUnit (Unit _unit, Vector3 _position)
+	public void DeployUnit (Unit _unit, Vector3 _position)
 	{
 
 		var register = Game.Manager.register;
@@ -411,6 +447,14 @@ public class JKTesting : MonoBehaviour
 		//Register on BattelGrid
 		BattleGrid.RegisterUnit (_position, unitModel, CellContext.unit);
 		highlightCell (highlightedPoint, highlightedCell);
+
+		JKLog.Log (_unit.faction + " Deployed a " + _unit.unitType + " to " + _position.ToString ());
+	}
+
+	void TestCmd ()
+	{
+		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+		LocalPlayer.CmdTest (Game.PlayerName);
 	}
 
 	#endregion

@@ -6,6 +6,10 @@ public class Game : MonoBehaviour
 	public static Game Manager = null;
 	public Register register;
 
+	public static string PlayerName{ get; set; }
+
+	public static JKTesting BattleManager{ get; set; }
+
 	void Awake ()
 	{
 		if (Manager == null)

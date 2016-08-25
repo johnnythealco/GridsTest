@@ -13,11 +13,14 @@ public class NetManager : NetworkManager
 	public void StartupHost ()
 	{
 		SetPort ();
+		SetIPAddress ();
 		NetworkManager.singleton.StartHost ();
 	}
 
 	public void JoinGame ()
 	{
+		SetPort ();
+		SetIPAddress ();
 		NetworkManager.singleton.StartClient ();
 	
 	}
