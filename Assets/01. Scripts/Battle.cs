@@ -4,26 +4,23 @@ using System.Collections.Generic;
 using JK.Grids;
 using System.IO;
 
-public class JKTesting : MonoBehaviour
+public class Battle : MonoBehaviour
 {
 	
 	public FlatHex flatHex;
 	public SpriteRenderer cellBorder;
-	public Unit fighter;
 
 	public string enemyFaction = "Enemy";
 	public SelectionContext selectionContext;
 	public HightlightedContext highlightedContext;
 
-	public BattleState battleState;
-
-	FlatHex BattleGrid;
+	public FlatHex BattleGrid;
 	SpriteRenderer gridCursor;
 
-	public Vector3 selectedPoint;
+	Vector3 selectedPoint;
 	BattleCell selectedCell;
 
-	public Vector3 highlightedPoint;
+	Vector3 highlightedPoint;
 	BattleCell highlightedCell;
 
 	UnitModel selectedUnit;
@@ -63,7 +60,8 @@ public class JKTesting : MonoBehaviour
 			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
 
 			var newUnit = new Unit (newUnitType, Game.PlayerName);
-			netWorkDeploy (newUnit, highlightedPoint); 
+			netWorkDeploy (newUnit, highlightedPoint);
+			highlightCell (highlightedPoint, highlightedCell);
 
 		}
 
@@ -72,12 +70,9 @@ public class JKTesting : MonoBehaviour
 			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
 
 			var newUnit = new Unit (newUnitType, enemyFaction);
-			DeployUnit (newUnit, highlightedPoint); 
+			netWorkDeploy (newUnit, highlightedPoint);
 
 		}
-
-		if (Input.GetKeyDown (KeyCode.Space))
-			TestCmd ();
 
 	}
 
@@ -259,11 +254,13 @@ public class JKTesting : MonoBehaviour
 
 	void getValidTargets ()
 	{
+		targets.Clear ();
+
 		if (selectedUnit == null)
 			return;
 
 		var occupiedCells = BattleGrid.occupiedCells;
-		targets.Clear ();
+	
 
 		foreach (var cell in occupiedCells)
 		{
@@ -375,7 +372,7 @@ public class JKTesting : MonoBehaviour
 
 	void netWorkDeploy (Unit _unit, Vector3 _position)
 	{
-		string type = "Deploy";
+		string type = "DeployUnit";
 		var _param1 = JsonUtility.ToJson (_unit);
 		var _param2 = JsonUtility.ToJson (_position);
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
@@ -394,82 +391,17 @@ public class JKTesting : MonoBehaviour
 
 	void netWorkMove (Vector3 _position, Vector3 _destination)
 	{
-		string type = "Move";
+		string type = "MoveUnit";
 		var _param1 = JsonUtility.ToJson (_position);
 		var _param2 = JsonUtility.ToJson (_destination);
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
 		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
 	}
 
-	public void moveUnit (Vector3 _position, Vector3 _destination)
-	{
-		var _unit = BattleGrid.GetCell (_position).unit;
-		var path = BattleGrid.getGridPath (_position, _destination);
-
-		foreach (var step in path)
-		{
-			BattleGrid.UnRegisterObject (_unit.transform.position);
-			BattleGrid.RegisterUnit (step, _unit, CellContext.unit);
-			_unit.transform.position = step;
-			JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " Move to " + step.ToString ());
-		}
-
-	}
-
-	public void BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
-	{
-		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
-		var _target = BattleGrid.GetCell (_targetPosition).unit;
-		
-		var destroyed = _target.TakeDirectDamage (_unit.Damage);
-
-		JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " : Attacks " + _target.faction + " " + _target.DsiplayName);
-		JKLog.Log ("Dealing " + _unit.Damage + " Damage");
-
-		if (destroyed)
-		{
-			BattleGrid.UnRegisterObject (_target.transform.position);
-			_target.DestroyUnit ();
-			JKLog.Log (_target.faction + " " + _target.DsiplayName + " was destroyed! : ( ");
-
-		}
-	}
-
-	public void DeployUnit (Unit _unit, Vector3 _position)
-	{
-
-		var register = Game.Manager.register;
-		var unitType = register.GetUnitType (_unit.unitType);
-		var unitModel = (UnitModel)Instantiate (unitType); 
-		unitModel.transform.position = _position;
-		unitModel.setUnitState (_unit);
-
-		//Register on BattelGrid
-		BattleGrid.RegisterUnit (_position, unitModel, CellContext.unit);
-		highlightCell (highlightedPoint, highlightedCell);
-
-		JKLog.Log (_unit.faction + " Deployed a " + _unit.unitType + " to " + _position.ToString ());
-	}
-
-	void TestCmd ()
-	{
-		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdTest (Game.PlayerName);
-	}
 
 	#endregion
 
 
-	public void SaveState ()
-	{
-		
-		var state = new BattleState (BattleGrid.State);
-		var JSON = JsonUtility.ToJson (state, true);
-
-		File.WriteAllText (Application.dataPath + "state.json", JSON);
-
-		Debug.Log (state);
-	}
 }
 
 public enum SelectionContext

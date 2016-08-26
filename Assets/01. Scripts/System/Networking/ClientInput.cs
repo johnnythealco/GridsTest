@@ -94,25 +94,25 @@ public class ClientInput :  NetworkBehaviour
 	{
 		switch (_type)
 		{
-		case "Deploy":
+		case "DeployUnit":
 			{
 				var _unit = JsonUtility.FromJson<Unit> (_param1);
 				var _position = JsonUtility.FromJson<Vector3> (_param2); 
-				Game.BattleManager.DeployUnit (_unit, _position);
+				BattleAction.Execute ("DeployUnit", _unit, _position);
 			}
 			break;
-		case "Move":
+		case "MoveUnit":
 			{
 				var _position = JsonUtility.FromJson<Vector3> (_param1);
-				var _destination = JsonUtility.FromJson<Vector3> (_param2); 
-				Game.BattleManager.moveUnit (_position, _destination);
+				var _destination = JsonUtility.FromJson<Vector3> (_param2);
+				BattleAction.Execute ("MoveUnit", _position, _destination);
 			}
 			break;
 		case "BasicAttack":
 			{
 				var _attacker = JsonUtility.FromJson<Vector3> (_param1);
-				var _target = JsonUtility.FromJson<Vector3> (_param2); 
-				Game.BattleManager.BasicAttack (_attacker, _target);
+				var _target = JsonUtility.FromJson<Vector3> (_param2);
+				BattleAction.Execute ("BasicAttack", _attacker, _target);
 			}
 			break;
 

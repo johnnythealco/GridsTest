@@ -8,7 +8,7 @@ public class Game : MonoBehaviour
 
 	public static string PlayerName{ get; set; }
 
-	public static JKTesting BattleManager{ get; set; }
+	public static Battle BattleManager{ get; set; }
 
 	void Awake ()
 	{
