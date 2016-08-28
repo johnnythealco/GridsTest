@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class Register : ScriptableObject
 {
-	#region Unit
+	#region Units
 
 	public List<UnitModel> unitTypes;
 
@@ -20,6 +20,26 @@ public class Register : ScriptableObject
 
 		return result;
 
+	}
+
+	#endregion
+
+	#region Weapons
+
+	public List<Weapon> Weapons;
+
+	public Weapon GetWeapon (string _name)
+	{
+		Weapon result = null;
+
+		foreach (var weapon in Weapons)
+		{
+			if (weapon.name == _name)
+				result = weapon;
+		
+
+		}
+		return result;
 	}
 
 	#endregion

@@ -7,18 +7,21 @@ using System.IO;
 public class Battle : MonoBehaviour
 {
 	
-	public FlatHex flatHex;
+	public FlatHex flatHexPrefab;
 	public SpriteRenderer cellBorder;
+	public UnitModelDisplay unitDisplay;
 
-	public string enemyFaction = "Enemy";
+
 	public SelectionContext selectionContext;
 	public HightlightedContext highlightedContext;
-
 	public FlatHex BattleGrid;
+
+	string enemyFaction = "Enemy";
+
 	SpriteRenderer gridCursor;
 
-	Vector3 selectedPoint;
-	BattleCell selectedCell;
+	//	Vector3 selectedPoint;
+	//	BattleCell selectedCell;
 
 	Vector3 highlightedPoint;
 	BattleCell highlightedCell;
@@ -31,10 +34,12 @@ public class Battle : MonoBehaviour
 	List<Vector3> moves = new List<Vector3> ();
 	List<Vector3> targets = new List<Vector3> ();
 
+	#region Start & Update
+
 	void Start ()
 	{
 		Game.BattleManager = this;
-		BattleGrid = Instantiate (flatHex) as FlatHex;
+		BattleGrid = Instantiate (flatHexPrefab) as FlatHex;
 		BattleGrid.BuildGrid ();
 		BattleGrid.onClickCell += BattleGrid_onClickCell;
 		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
@@ -75,6 +80,8 @@ public class Battle : MonoBehaviour
 		}
 
 	}
+
+	#endregion
 
 	#region Event handlers
 
@@ -294,8 +301,8 @@ public class Battle : MonoBehaviour
 
 	void selectCell (Vector3 _point, BattleCell _cell)
 	{
-		selectedPoint = _point;
-		selectedCell = _cell;
+//		selectedPoint = _point;
+//		selectedCell = _cell;
 		switch (selectionContext)
 		{
 		case SelectionContext.nothing:
@@ -350,6 +357,7 @@ public class Battle : MonoBehaviour
 	void selectUnit (Vector3 _point, BattleCell _cell)
 	{
 		selectedUnit = _cell.unit;
+		unitDisplay.Prime (selectedUnit);
 
 		selectionContext = SelectionContext.unit;
 
@@ -381,21 +389,14 @@ public class Battle : MonoBehaviour
 
 	void netWorkBasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
 	{
-		
-		string type = "BasicAttack";
-		var _param1 = JsonUtility.ToJson (_attackerPostion);
-		var _param2 = JsonUtility.ToJson (_targetPosition);
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+		LocalPlayer.CmdBattleAction ("BasicAttack", _attackerPostion, _targetPosition);
 	}
 
 	void netWorkMove (Vector3 _position, Vector3 _destination)
 	{
-		string type = "MoveUnit";
-		var _param1 = JsonUtility.ToJson (_position);
-		var _param2 = JsonUtility.ToJson (_destination);
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+		LocalPlayer.CmdBattleAction ("MoveUnit", _position, _destination);
 	}
 
 

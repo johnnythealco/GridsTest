@@ -68,10 +68,12 @@ public class BattleAction : MonoBehaviour
 		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
 		var _target = BattleGrid.GetCell (_targetPosition).unit;
 
-		var destroyed = _target.TakeDirectDamage (_unit.Damage);
+		var damage = _unit.getDamage (_target.Size);
+
+		var destroyed = _target.TakeDirectDamage (damage);
 
 		JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " : Attacks " + _target.faction + " " + _target.DsiplayName);
-		JKLog.Log ("Dealing " + _unit.Damage + " Damage");
+		JKLog.Log ("Dealing " + damage + " Damage with " + _unit.selectedWeapon);
 
 		if (destroyed)
 		{

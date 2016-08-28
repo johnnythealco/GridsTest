@@ -60,28 +60,7 @@ public class ClientInput :  NetworkBehaviour
 
 	#endregion
 
-	void Update ()
-	{
 
-			
-
-	}
-
-
-	[Command]
-	public void CmdTest (string _msg)
-	{		
-		
-		RpcTest (_msg);
-	}
-
-	[ClientRpc]
-	void RpcTest (string _msg)
-	{
-		string message = _msg + " connected on Network ID " + this.netId + " sent a command";
-		Debug.Log (message);	
-	
-	}
 
 	[Command]
 	public void CmdBattleCommand (string _type, string _param1, string _param2)
@@ -101,25 +80,41 @@ public class ClientInput :  NetworkBehaviour
 				BattleAction.Execute ("DeployUnit", _unit, _position);
 			}
 			break;
+		}
+		
+	}
+
+
+	#region Battle Actions
+
+	[Command]
+	public void CmdBattleAction (string _type, Vector3 _point1, Vector3 _point2)
+	{
+		RpcBattleAction (_type, _point1, _point2);
+	}
+
+	[ClientRpc]
+	public void RpcBattleAction (string _type, Vector3 _point1, Vector3 _point2)
+	{
+		switch (_type)
+		{
+
 		case "MoveUnit":
 			{
-				var _position = JsonUtility.FromJson<Vector3> (_param1);
-				var _destination = JsonUtility.FromJson<Vector3> (_param2);
-				BattleAction.Execute ("MoveUnit", _position, _destination);
+				BattleAction.Execute ("MoveUnit", _point1, _point2);
 			}
 			break;
 		case "BasicAttack":
 			{
-				var _attacker = JsonUtility.FromJson<Vector3> (_param1);
-				var _target = JsonUtility.FromJson<Vector3> (_param2);
-				BattleAction.Execute ("BasicAttack", _attacker, _target);
+				BattleAction.Execute ("BasicAttack", _point1, _point2);
 			}
 			break;
 
 
 		}
-		
+
 	}
 
+	#endregion
 
 }

@@ -3,8 +3,11 @@ using System.Collections;
 
 public class Game : MonoBehaviour
 {
-	public static Game Manager = null;
 	public Register register;
+
+	public static Game Manager = null;
+
+	public static Register Register{ get; set; }
 
 	public static string PlayerName{ get; set; }
 
@@ -13,9 +16,12 @@ public class Game : MonoBehaviour
 	void Awake ()
 	{
 		if (Manager == null)
+		{
 			Manager = this;
-		else if (Manager != this)
+			Register = register;
+		} else if (Manager != this)
 			Destroy (gameObject);
+
 
 		DontDestroyOnLoad (gameObject);
 	}
