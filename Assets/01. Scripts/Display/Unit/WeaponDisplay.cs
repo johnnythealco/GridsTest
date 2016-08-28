@@ -16,9 +16,11 @@ public class WeaponDisplay : MonoBehaviour
 	public void Prime (Weapon _weapon)
 	{
 		weapon = _weapon;
+		if (Icon != null)
+			Icon.sprite = weapon.icon;
 
-		Icon.sprite = weapon.icon;
-		weaponName.text = weapon.name;
+		if (weaponName != null)
+			weaponName.text = weapon.name;
 	}
 
 	public void OnClick ()

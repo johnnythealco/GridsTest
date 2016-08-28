@@ -21,25 +21,30 @@ public class UnitModelDisplay : MonoBehaviour
 		unit = _unitModel;
 		clearWeaponDisplays ();
 
-		unitName.text = unit.DsiplayName;
-		Icon.sprite = unit.Icon;
-		unitHealth.text = unit.Health.ToString ();
+		if (unitName != null)
+			unitName.text = unit.DsiplayName;
+		if (Icon != null)
+			Icon.sprite = unit.Icon;
+		if (unitHealth != null)
+			unitHealth.text = unit.Health.ToString ();
 
 		if (unit.selectedWeapon == null || unit.selectedWeapon == "")
 			unit.selectedWeapon = unit.Weapons.First ();
 
-
-		foreach (var item in unit.Weapons)
+		if (weaponsPanel != null)
 		{
-			var weapon = Game.Register.GetWeapon (item);
-			var weaponDsiplay = (WeaponDisplay)Instantiate (weaponDisplayPrefab);
-			weaponDsiplay.transform.SetParent (weaponsPanel);
-			weaponDsiplay.Prime (weapon);
-			weaponDsiplay.onClick += WeaponDsiplay_onClick;
-			weaponDisplays.Add (weaponDsiplay);
-		}
+			foreach (var item in unit.Weapons)
+			{
+				var weapon = Game.Register.GetWeapon (item);
+				var weaponDsiplay = (WeaponDisplay)Instantiate (weaponDisplayPrefab);
+				weaponDsiplay.transform.SetParent (weaponsPanel);
+				weaponDsiplay.Prime (weapon);
+				weaponDsiplay.onClick += WeaponDsiplay_onClick;
+				weaponDisplays.Add (weaponDsiplay);
+			}
 
-		highlightSelectedWeapon ();
+			highlightSelectedWeapon ();
+		}
 
 	}
 

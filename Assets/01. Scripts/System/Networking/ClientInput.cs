@@ -4,8 +4,8 @@ using UnityEngine.Networking;
 
 public class ClientInput :  NetworkBehaviour
 {
-
-	public bool isPlayer;
+	[SyncVar]
+	public string battlePhase = "Waiting to Start";
 
 
 	NetManager NetMgr;
@@ -16,6 +16,9 @@ public class ClientInput :  NetworkBehaviour
 	{
 		DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
+		Debug.Log ("ClientInput is Awake"); 
+
+		this.netId
 	}
 
 	void Start ()
@@ -29,7 +32,7 @@ public class ClientInput :  NetworkBehaviour
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-			this.isPlayer = this.isLocalPlayer;
+
 			Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
 		}
 
@@ -61,6 +64,11 @@ public class ClientInput :  NetworkBehaviour
 	#endregion
 
 
+	[Command]
+	public void CmdBattlePhase (string _phase)
+	{
+		this.battlePhase = _phase;
+	}
 
 	[Command]
 	public void CmdBattleCommand (string _type, string _param1, string _param2)

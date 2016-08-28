@@ -70,4 +70,11 @@ public class Weapon
 
 }
 
+[System.Serializable]
+public class UnitCost
+{
+	public string unitType;
+	public int cost;
+}
+
 

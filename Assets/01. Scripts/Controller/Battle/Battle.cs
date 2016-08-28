@@ -11,9 +11,9 @@ public class Battle : MonoBehaviour
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
 
+	public JKLog gameLog;
 
-	public SelectionContext selectionContext;
-	public HightlightedContext highlightedContext;
+
 	public FlatHex BattleGrid;
 
 	string enemyFaction = "Enemy";
@@ -22,6 +22,9 @@ public class Battle : MonoBehaviour
 
 	//	Vector3 selectedPoint;
 	//	BattleCell selectedCell;
+
+	SelectionContext selectionContext;
+	HightlightedContext highlightedContext;
 
 	Vector3 highlightedPoint;
 	BattleCell highlightedCell;
@@ -45,6 +48,7 @@ public class Battle : MonoBehaviour
 		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
 		BattleGrid.onRightClickCell += BattleGrid_onRightClickCell;
 		selectionContext = SelectionContext.nothing;
+		gameLog.gameObject.SetActive (true);
 
 		if (gridCursor == null)
 			gridCursor = Instantiate (cellBorder) as SpriteRenderer;
@@ -55,6 +59,7 @@ public class Battle : MonoBehaviour
 			selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
 
 		selectedUnitCursor.gameObject.SetActive (false);
+
 	}
 
 	void Update ()
@@ -76,7 +81,12 @@ public class Battle : MonoBehaviour
 
 			var newUnit = new Unit (newUnitType, enemyFaction);
 			netWorkDeploy (newUnit, highlightedPoint);
+		}
 
+		if (Input.GetKeyDown (KeyCode.Space))
+		{
+			var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+			LocalPlayer.CmdBattlePhase ("Starting");
 		}
 
 	}
@@ -359,6 +369,8 @@ public class Battle : MonoBehaviour
 		selectedUnit = _cell.unit;
 		unitDisplay.Prime (selectedUnit);
 
+		unitDisplay.gameObject.SetActive (true);
+
 		selectionContext = SelectionContext.unit;
 
 		selectedUnitCursor.gameObject.SetActive (true);
@@ -369,6 +381,7 @@ public class Battle : MonoBehaviour
 	void clearSelection ()
 	{
 		selectedUnit = null;
+		unitDisplay.gameObject.SetActive (false);
 		selectionContext = SelectionContext.nothing;
 		selectedUnitCursor.gameObject.SetActive (false);
 	}
