@@ -18,7 +18,7 @@ public class ClientInput :  NetworkBehaviour
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
 		Debug.Log ("ClientInput is Awake"); 
 
-		this.netId
+
 	}
 
 	void Start ()
@@ -32,7 +32,6 @@ public class ClientInput :  NetworkBehaviour
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-
 			Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
 		}
 
@@ -70,6 +69,26 @@ public class ClientInput :  NetworkBehaviour
 		this.battlePhase = _phase;
 	}
 
+
+
+	//	[Command]
+	//	public void CmdUpdateState (string _param1, string _param2)
+	//	{
+	//		var _netID = this.netId;
+	//		RpcBattleRpc (_netID, _param1, _param2);
+	//	}
+	//
+	//	[ClientRpc]
+	//	public void RpcUpdateState (int _netID, string _param1, string _param2)
+	//	{
+	//
+	//
+	//
+	//	}
+	//
+
+	#region Battle Actions
+
 	[Command]
 	public void CmdBattleCommand (string _type, string _param1, string _param2)
 	{
@@ -89,11 +108,10 @@ public class ClientInput :  NetworkBehaviour
 			}
 			break;
 		}
-		
+
 	}
 
 
-	#region Battle Actions
 
 	[Command]
 	public void CmdBattleAction (string _type, Vector3 _point1, Vector3 _point2)

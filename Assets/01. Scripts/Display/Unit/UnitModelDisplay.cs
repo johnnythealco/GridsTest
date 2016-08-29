@@ -84,6 +84,8 @@ public class UnitModelDisplay : MonoBehaviour
 			Destroy (weaponsPanel.GetChild (i).gameObject);
 		}
 
+		weaponDisplays.Clear ();
+
 	}
 
 

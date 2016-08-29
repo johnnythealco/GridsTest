@@ -21,8 +21,7 @@ public class NetManager : NetworkManager
 	{
 		SetPort ();
 		SetIPAddress ();
-		NetworkManager.singleton.StartClient ();
-	
+		NetworkManager.singleton.StartClient ();	
 	}
 
 	void SetPort ()
@@ -46,7 +45,7 @@ public class NetManager : NetworkManager
 	{
 		base.OnClientConnect (conn);
 
-		Debug.Log ("OnClientConnect Called : Conection " + conn.ToString ());
+//		Debug.Log ("OnClientConnect Called : Conection " + conn.ToString ());
 	}
 
 

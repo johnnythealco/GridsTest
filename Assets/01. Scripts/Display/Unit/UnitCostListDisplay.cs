@@ -56,6 +56,17 @@ public class UnitCostListDisplay : MonoBehaviour
 
 	}
 
+	public void HighlightDisplay (string _unitName)
+	{
+		foreach (var item 	in UnitCostDisplays)
+		{
+			if (item.unitName.text == _unitName)
+				item.Highlight ();
+			else
+				item.UnHighlight ();
+		}
+	}
+
 
 	void onDestroy ()
 	{

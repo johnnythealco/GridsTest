@@ -6,9 +6,11 @@ using System.IO;
 
 public class Battle : MonoBehaviour
 {
-	
+	#region Variables
+
 	public FlatHex flatHexPrefab;
 	public SpriteRenderer cellBorder;
+	public DeploymentManager deploymentManager;
 	public UnitModelDisplay unitDisplay;
 
 	public JKLog gameLog;
@@ -19,11 +21,9 @@ public class Battle : MonoBehaviour
 	string enemyFaction = "Enemy";
 
 	SpriteRenderer gridCursor;
+	SpriteRenderer selectedUnitCursor;
 
-	//	Vector3 selectedPoint;
-	//	BattleCell selectedCell;
-
-	SelectionContext selectionContext;
+	BattleContext battleContext;
 	HightlightedContext highlightedContext;
 
 	Vector3 highlightedPoint;
@@ -32,10 +32,14 @@ public class Battle : MonoBehaviour
 	UnitModel selectedUnit;
 	UnitModel highlightedUnit;
 
+	string selectedUntyDeploy;
 
-	SpriteRenderer selectedUnitCursor;
+
+
 	List<Vector3> moves = new List<Vector3> ();
 	List<Vector3> targets = new List<Vector3> ();
+
+	#endregion
 
 	#region Start & Update
 
@@ -47,20 +51,26 @@ public class Battle : MonoBehaviour
 		BattleGrid.onClickCell += BattleGrid_onClickCell;
 		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
 		BattleGrid.onRightClickCell += BattleGrid_onRightClickCell;
-		selectionContext = SelectionContext.nothing;
+		BattleGrid.onNoCellSelected += BattleGrid_onNoCellSelected;
+
+		battleContext = BattleContext.nothing_selected;
 		gameLog.gameObject.SetActive (true);
 
-		if (gridCursor == null)
-			gridCursor = Instantiate (cellBorder) as SpriteRenderer;
 
+		gridCursor = Instantiate (cellBorder) as SpriteRenderer;
 		gridCursor.gameObject.SetActive (false);
 
-		if (selectedUnitCursor == null)
-			selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
 
+		selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
 		selectedUnitCursor.gameObject.SetActive (false);
 
+		deploymentManager.onSelectUnit += DeploymentManager_onSelectUnit;
+		deploymentManager.onEndDeployment += DeploymentManager_onEndDeployment;
+
 	}
+
+
+
 
 	void Update ()
 	{
@@ -97,17 +107,7 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onRightClickCell (Vector3 _point, BattleCell _cell)
 	{
-		if (selectedUnit != null)
-		{
-			var path = BattleGrid.getPathToTarget (selectedUnit.transform.position, _point);
-
-			foreach (var step in path)
-			{
-				var cell = BattleGrid.GetCell (step);
-				cell.Color = Color.cyan;
-			}
-
-		}
+		
 
 	}
 
@@ -121,9 +121,39 @@ public class Battle : MonoBehaviour
 		selectCell (_point, _cell);
 	}
 
+	void BattleGrid_onNoCellSelected ()
+	{
+		selectedUnitCursor.gameObject.SetActive (false);
+		gridCursor.gameObject.SetActive (false);
+		battleContext = BattleContext.nothing_selected;
+		highlightedContext = HightlightedContext.nothing;
+		selectedUnit = null;
+
+	}
+
+	void DeploymentManager_onSelectUnit (string _unit)
+	{
+		battleContext = BattleContext.Deployment;
+		selectedUntyDeploy = _unit;
+	}
+
+
+	void DeploymentManager_onEndDeployment ()
+	{
+		battleContext = BattleContext.nothing_selected;
+		deploymentManager.gameObject.SetActive (false);
+
+		deploymentManager.onSelectUnit -= DeploymentManager_onSelectUnit;
+		deploymentManager.onEndDeployment -= DeploymentManager_onEndDeployment;
+
+	}
+
+
+
+
 	#endregion
 
-	#region Cell Highlighting
+	#region Set Context
 
 	void highlightCell (Vector3 _point, BattleCell _cell)
 	{
@@ -131,9 +161,9 @@ public class Battle : MonoBehaviour
 		highlightedCell = _cell;
 		getCellContext (_point, _cell);
 
-		switch (selectionContext)
+		switch (battleContext)
 		{
-		case SelectionContext.nothing:
+		case BattleContext.nothing_selected:
 			{
 				switch (highlightedContext)
 				{
@@ -142,10 +172,7 @@ public class Battle : MonoBehaviour
 					break;
 				case HightlightedContext.unit:
 					highlightUnit (_point, _cell);
-					break;
-				case HightlightedContext.target:
-					highlightTarget (_point, _cell);
-					break;
+					break;			
 				case HightlightedContext.enemy:
 					highlightEnemy (_point, _cell);
 					break;
@@ -153,7 +180,7 @@ public class Battle : MonoBehaviour
 
 			}
 			break;
-		case SelectionContext.unit:	
+		case BattleContext.unit_default:	
 			{
 				switch (highlightedContext)
 				{
@@ -174,44 +201,23 @@ public class Battle : MonoBehaviour
 					break;
 				}
 			}
-			break;		
+			break;
+		case BattleContext.Deployment:
+			{
+				switch (highlightedContext)
+				{
+				case HightlightedContext.nothing:
+					highlightDeployment (_point, _cell);
+					break;
+				case HightlightedContext.unit:					
+					break;				
+				case HightlightedContext.enemy:
+					break;
+				}
+
+			}
+			break;
 		}
-	}
-
-	void highlightEmptyCell (Vector3 _point, BattleCell _cell)
-	{
-		gridCursor.color = Color.gray;
-		gridCursor.transform.position = _point;
-		gridCursor.gameObject.SetActive (true);	
-		highlightedUnit = null;
-	}
-
-	void highlightUnit (Vector3 _point, BattleCell _cell)
-	{
-		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
-		gridCursor.color = Color.green;
-	}
-
-	void highlightTarget (Vector3 _point, BattleCell _cell)
-	{
-		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
-		gridCursor.color = Color.red;
-	}
-
-	void highlightEnemy (Vector3 _point, BattleCell _cell)
-	{
-		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
-		gridCursor.color = Color.magenta;
-	}
-
-	void highlightMove (Vector3 _point, BattleCell _cell)
-	{
-		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
-		gridCursor.color = Color.green;
 	}
 
 	void getCellContext (Vector3 _point, BattleCell _cell)
@@ -254,6 +260,54 @@ public class Battle : MonoBehaviour
 		}		
 	}
 
+	#endregion
+
+	#region Highlighting
+
+	void highlightEmptyCell (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.color = Color.gray;
+		gridCursor.transform.position = _point;
+		gridCursor.gameObject.SetActive (true);	
+		highlightedUnit = null;
+	}
+
+	void highlightDeployment (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.color = Color.yellow;
+		gridCursor.transform.position = _point;
+		gridCursor.gameObject.SetActive (true);	
+		highlightedUnit = null;
+	}
+
+	void highlightUnit (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.transform.position = _point;
+		highlightedUnit = _cell.unit;
+		gridCursor.color = Color.green;
+	}
+
+	void highlightTarget (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.transform.position = _point;
+		highlightedUnit = _cell.unit;
+		gridCursor.color = Color.red;
+	}
+
+	void highlightEnemy (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.transform.position = _point;
+		highlightedUnit = _cell.unit;
+		gridCursor.color = Color.magenta;
+	}
+
+	void highlightMove (Vector3 _point, BattleCell _cell)
+	{
+		gridCursor.transform.position = _point;
+		highlightedUnit = _cell.unit;
+		gridCursor.color = Color.green;
+	}
+
 	void showMoves ()
 	{
 		if (selectedUnit == null)
@@ -267,7 +321,6 @@ public class Battle : MonoBehaviour
 			c.Color = Color.gray;
 		}
 	}
-
 
 	void getValidTargets ()
 	{
@@ -311,11 +364,10 @@ public class Battle : MonoBehaviour
 
 	void selectCell (Vector3 _point, BattleCell _cell)
 	{
-//		selectedPoint = _point;
-//		selectedCell = _cell;
-		switch (selectionContext)
+
+		switch (battleContext)
 		{
-		case SelectionContext.nothing:
+		case BattleContext.nothing_selected:
 			{
 				switch (highlightedContext)
 				{
@@ -331,7 +383,7 @@ public class Battle : MonoBehaviour
 				}
 			}
 			break;
-		case SelectionContext.unit:
+		case BattleContext.unit_default:
 			{
 				switch (highlightedContext)
 				{
@@ -361,6 +413,18 @@ public class Battle : MonoBehaviour
 				}
 			}
 			break;
+		case BattleContext.Deployment:
+			{
+				switch (highlightedContext)
+				{
+				case HightlightedContext.nothing:
+					deployUnit (_point, _cell);
+					break;
+				case HightlightedContext.unit:
+					break;
+				}
+			}
+			break;
 		}
 	}
 
@@ -371,18 +435,29 @@ public class Battle : MonoBehaviour
 
 		unitDisplay.gameObject.SetActive (true);
 
-		selectionContext = SelectionContext.unit;
+		battleContext = BattleContext.unit_default;
 
 		selectedUnitCursor.gameObject.SetActive (true);
 		selectedUnitCursor.color = Color.blue;
 		selectedUnitCursor.transform.position = _point;
 	}
 
+	void deployUnit (Vector3 _point, BattleCell _cell)
+	{
+		if (deploymentManager.BuildUnit ())
+		{
+			var newUnitType = Game.Manager.register.GetUnitType (selectedUntyDeploy);
+
+			var newUnit = new Unit (newUnitType, Game.PlayerName);
+			netWorkDeploy (newUnit, highlightedPoint);
+			highlightCell (highlightedPoint, highlightedCell);
+		}
+	}
+
 	void clearSelection ()
 	{
 		selectedUnit = null;
-		unitDisplay.gameObject.SetActive (false);
-		selectionContext = SelectionContext.nothing;
+		battleContext = BattleContext.nothing_selected;
 		selectedUnitCursor.gameObject.SetActive (false);
 	}
 
@@ -413,18 +488,18 @@ public class Battle : MonoBehaviour
 	}
 
 
+
+
 	#endregion
 
 
 }
 
-public enum SelectionContext
+public enum BattleContext
 {
-	nothing = 0,
-	unit = 1,
-	enemy = 2,
-	target = 3,
-	move = 4
+	nothing_selected = 0,
+	unit_default = 1,
+	Deployment = 2,
 }
 
 public enum HightlightedContext

@@ -19,7 +19,7 @@ namespace JK
 
 			FlatHexPoint mouseGridPoint;
 			FlatHexPoint newMouseGridPoint;
-
+			bool mouseOverGrid;
 
 			public FlatHexGrid<BattleCell> Grid{ get; set; }
 
@@ -27,11 +27,18 @@ namespace JK
 
 			public List<BattleCellState> State;
 
-			public delegate void FlatHexDelegate (Vector3 _point, BattleCell _cell);
+			#region Delegates & Events
 
-			public event FlatHexDelegate onClickCell;
-			public event FlatHexDelegate onMouseOverCell;
-			public event FlatHexDelegate onRightClickCell;
+			public delegate void FlatHexDelegate_point_cell (Vector3 _point, BattleCell _cell);
+
+			public delegate void FlatHexDelegate ();
+
+			public event FlatHexDelegate_point_cell onClickCell;
+			public event FlatHexDelegate_point_cell onMouseOverCell;
+			public event FlatHexDelegate_point_cell onRightClickCell;
+			public event FlatHexDelegate onNoCellSelected;
+
+			#endregion
 
 			public List<BattleCell> occupiedCells = new List<BattleCell> ();
 
@@ -170,12 +177,12 @@ namespace JK
 
 			void getMouseClick ()
 			{
-				if (Input.GetMouseButtonDown (0))
+				if (Input.GetMouseButtonDown (0) && mouseOverGrid)
 				{
 					onClickCell.Invoke (Map [mouseGridPoint], Grid [mouseGridPoint]);
 				}
 
-				if (Input.GetMouseButtonDown (1))
+				if (Input.GetMouseButtonDown (1) & mouseOverGrid)
 				{
 					onRightClickCell.Invoke (Map [mouseGridPoint], Grid [mouseGridPoint]);
 
@@ -184,8 +191,23 @@ namespace JK
 
 			void mouseGridPosition ()
 			{
+				//If the mouse is ove a UI Element
+				if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject ())
+				{
+					if (mouseOverGrid)
+					{
+						mouseOverGrid = false;
+						mouseGridPoint = new FlatHexPoint ();
+						onNoCellSelected.Invoke ();
+					}
+					return;
+				}
+					
+
+				//Determin What Cell the mouse is currently over
 				var ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 				RaycastHit hit;
+
 				if (Physics.Raycast (ray, out hit))
 				{
 					Vector3 worldPosition = this.transform.InverseTransformPoint (hit.point);
@@ -197,10 +219,17 @@ namespace JK
 					if (Grid.Contains (point))
 					{
 						{
+							mouseOverGrid = true;
 							mouseGridPoint = point;
 							onMouseOverCell.Invoke (Map [point], Grid [mouseGridPoint]);
 						}
 
+						//if the mouse is not over the grid
+					} else if (mouseOverGrid)
+					{
+						mouseOverGrid = false;
+						mouseGridPoint = new FlatHexPoint ();
+						onNoCellSelected.Invoke ();
 					}
 				}
 			}

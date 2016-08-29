@@ -40,5 +40,15 @@ public class UnitCostDisplay : MonoBehaviour
 			onClick.Invoke (unitCost);
 	}
 
+	public void Highlight ()
+	{
+		unitName.fontStyle = FontStyle.Bold;
+	}
+
+	public void UnHighlight ()
+	{
+		unitName.fontStyle = FontStyle.Normal;
+	}
+
 
 }
