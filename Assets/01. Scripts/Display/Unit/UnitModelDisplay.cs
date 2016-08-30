@@ -26,7 +26,7 @@ public class UnitModelDisplay : MonoBehaviour
 		if (Icon != null)
 			Icon.sprite = unit.Icon;
 		if (unitHealth != null)
-			unitHealth.text = unit.Health.ToString ();
+			unitHealth.text = unit.Armour.ToString ();
 
 		if (unit.selectedWeapon == null || unit.selectedWeapon == "")
 			unit.selectedWeapon = unit.Weapons.First ();

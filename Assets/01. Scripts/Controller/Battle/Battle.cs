@@ -349,9 +349,7 @@ public class Battle : MonoBehaviour
 		foreach (var point in moves)
 		{
 			var cell = BattleGrid.GetCell (point);
-			cell.Color = BattleGrid.flatHexCell.Color;
-			if (cell.context == CellContext.move)
-				cell.context = CellContext.empty;
+			cell.Color = BattleGrid.flatHexCell.Color;	
 		}
 
 		moves.Clear ();
@@ -477,14 +475,15 @@ public class Battle : MonoBehaviour
 
 	void netWorkBasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
 	{
+		var weapon = selectedUnit.selectedWeapon;
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdBattleAction ("BasicAttack", _attackerPostion, _targetPosition);
+		LocalPlayer.CmdBattleAction ("BasicAttack", _attackerPostion, _targetPosition, weapon);
 	}
 
 	void netWorkMove (Vector3 _position, Vector3 _destination)
 	{
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdBattleAction ("MoveUnit", _position, _destination);
+		LocalPlayer.CmdBattleAction ("MoveUnit", _position, _destination, "none");
 	}
 
 

@@ -7,14 +7,14 @@ public class BattleAction : MonoBehaviour
 
 
 
-	public static bool Execute (string _action, Vector3 _source, Vector3 _target)
+	public static bool Execute (string _action, Vector3 _source, Vector3 _target, string _weapon)
 	{
 		switch (_action)
 		{
 		case "MoveUnit":
 			return MoveUnit (_source, _target);
 		case "BasicAttack":
-			return BasicAttack (_source, _target);
+			return BasicAttack (_source, _target, _weapon);
 		}
 		return false;
 	}
@@ -57,7 +57,7 @@ public class BattleAction : MonoBehaviour
 	}
 
 
-	static bool BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition)
+	static bool BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition, string _weapon)
 	{
 		if (Game.BattleManager == null)
 			return false;
@@ -65,15 +65,15 @@ public class BattleAction : MonoBehaviour
 		var battleManager = Game.BattleManager;
 		var BattleGrid = battleManager.BattleGrid;
 
-		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
+//		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
 		var _target = BattleGrid.GetCell (_targetPosition).unit;
 
-		var damage = _unit.getDamage (_target.Size);
 
-		var destroyed = _target.TakeDirectDamage (damage);
+//		var damage = _unit.getDamage (_target.Size);
 
-		JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " : Attacks " + _target.faction + " " + _target.DsiplayName);
-		JKLog.Log ("Dealing " + damage + " Damage with " + _unit.selectedWeapon);
+		var destroyed = _target.HitBy (_weapon);
+
+
 
 		if (destroyed)
 		{

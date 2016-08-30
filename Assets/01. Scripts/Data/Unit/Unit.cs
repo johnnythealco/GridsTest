@@ -8,8 +8,13 @@ public class Unit
 	public string faction;
 	public string unitType;
 	public unitSize size;
-	public int Movement;
-	public int health;
+	public int AP;
+	public int movement;
+	public int armour;
+	public ArmourType armourType;
+	public int sheilds;
+	public int evasion;
+
 
 	public List<string> weapons;
 
@@ -18,11 +23,10 @@ public class Unit
 	{
 		this.faction = _faction;
 		this.unitType = _type.DsiplayName;
-		this.Movement = _type.Movement;
+		this.movement = _type.Movement;
 		this.weapons = _type.Weapons;
 		this.size = _type.Size;
-		this.health = _type.Health;
-
+		this.armour = _type.Armour;
 	}
 
 
@@ -43,31 +47,32 @@ public class Weapon
 	public string name;
 	public Sprite icon;
 	public int range = 1;
-	public int damageTiny = 10;
-	public int damageSmall = 10;
-	public int damageMedium = 10;
-	public int damageLarge = 10;
-	public int damageMassive = 10;
+	public int accuracy = 1;
+	public int damage = 10;
+	public DamageType damageType;
+
+
 
 	public int getDamage (unitSize _targetSize)
 	{
-		switch (_targetSize)
-		{
-		case unitSize.tiny:
-			return damageTiny;
-		case unitSize.small:
-			return damageSmall;
-		case unitSize.medium:
-			return damageMedium;
-		case unitSize.large:
-			return damageLarge;
-		case unitSize.massive:
-			return damageMassive;
-		}
 
 		return 0;
 	}
 
+}
+
+public enum DamageType
+{
+	kinetic = 0,
+	laser = 1,
+	plasma = 2
+}
+
+public enum ArmourType
+{
+	light = 0,
+	medium = 1,
+	heavy = 2
 }
 
 [System.Serializable]

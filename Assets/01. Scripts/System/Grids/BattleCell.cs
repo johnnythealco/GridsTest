@@ -60,7 +60,6 @@ public class BattleState
 public enum CellContext
 {
 	empty = 0,
-	move = 1,
 	unit = 2
 
 }
