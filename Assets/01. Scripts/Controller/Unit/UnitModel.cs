@@ -6,7 +6,7 @@ using System.Linq;
 [System.Serializable]
 public class UnitModel : MonoBehaviour
 {
-	Unit unit;
+	public Unit unit;
 	public Sprite Icon;
 	public string DsiplayName;
 	public unitSize Size;
@@ -24,8 +24,10 @@ public class UnitModel : MonoBehaviour
 
 	public int currentMovement{ get { return unit.movement; } }
 
-	public int currentAttackRange {
-		get { 
+	public int currentAttackRange
+	{
+		get
+		{ 
 			var weapon = Game.Register.GetWeapon (selectedWeapon);		
 			return weapon.range;
 		}
@@ -64,7 +66,7 @@ public class UnitModel : MonoBehaviour
 	{
 		var weapon = Game.Register.GetWeapon (_weapon);
 		var weaponDamage = weapon.damage;
-		var armour = this.unit.armour;
+
 
 
 
@@ -90,7 +92,7 @@ public class UnitModel : MonoBehaviour
 			break;
 		}
 
-		if (armour <= 0)
+		if (unit.armour <= 0)
 		{
 			return true;
 		}
@@ -121,9 +123,9 @@ public class UnitModel : MonoBehaviour
 	void takeLaserDamage (int _damage)
 	{
 
-		var sheilds = this.unit.sheilds;
-		var armour = this.unit.armour;
-		var armourType = this.unit.armourType; 
+		var sheilds = unit.sheilds;
+
+		var armourType = unit.armourType; 
 		
 		if (sheilds > 0)
 		{
@@ -140,19 +142,19 @@ public class UnitModel : MonoBehaviour
 				case ArmourType.light:
 					{
 						if ((extraDamage - 1) > 0)
-							armour = armour - (extraDamage - 1);
+							unit.armour = unit.armour - (extraDamage - 1);
 					}
 					break;
 				case ArmourType.medium:
 					{
 						if ((extraDamage - 10) > 0)
-							armour = armour - (extraDamage - 10);
+							unit.armour = unit.armour - (extraDamage - 10);
 					}
 					break;
 				case ArmourType.heavy:
 					{
 						if ((extraDamage - 100) > 0)
-							armour = armour - (extraDamage - 100);
+							unit.armour = unit.armour - (extraDamage - 100);
 					}
 					break;
 
@@ -167,19 +169,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						armour = armour - (_damage - 1);
+						unit.armour = unit.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						armour = armour - (_damage - 10);
+						unit.armour = unit.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						armour = armour - (_damage - 100);
+						unit.armour = unit.armour - (_damage - 100);
 				}
 				break;
 
@@ -190,9 +192,9 @@ public class UnitModel : MonoBehaviour
 	void takeKineticDamage (int _damage)
 	{
 
-		var sheilds = this.unit.sheilds;
-		var armour = this.unit.armour;
-		var armourType = this.unit.armourType; 
+		var sheilds = unit.sheilds;
+
+		var armourType = unit.armourType; 
 
 		if (sheilds > 0)
 		{
@@ -208,19 +210,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						armour = armour - (_damage - 1);
+						unit.armour = unit.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						armour = armour - (_damage - 10);
+						unit.armour = unit.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						armour = armour - (_damage - 100);
+						unit.armour = unit.armour - (_damage - 100);
 				}
 				break;
 
@@ -232,9 +234,9 @@ public class UnitModel : MonoBehaviour
 	void takePlasmaDamage (int _damage)
 	{
 
-		var sheilds = this.unit.sheilds;
-		var armour = this.unit.armour;
-		var armourType = this.unit.armourType; 
+		var sheilds = unit.sheilds;
+
+		var armourType = unit.armourType; 
 
 		if (sheilds > 0)
 		{
@@ -250,19 +252,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						armour = armour - (_damage - 1);
+						unit.armour = unit.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						armour = armour - (_damage - 10);
+						unit.armour = unit.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						armour = armour - (_damage - 100);
+						unit.armour = unit.armour - (_damage - 100);
 				}
 				break;
 
