@@ -19,6 +19,7 @@ public class UnitModel : MonoBehaviour
 	public List<string> Weapons;
 	public string selectedWeapon;
 
+	#region Getters & Setters
 
 	public string faction{ get { return unit.faction; } }
 
@@ -49,6 +50,15 @@ public class UnitModel : MonoBehaviour
 
 		
 	}
+
+	public void setUnitState (Unit _unit)
+	{
+		this.unit = _unit;
+	}
+
+	#endregion
+
+	#region Combat
 
 	public bool AttackWith (string _weapon, string _subSystem)
 	{
@@ -103,22 +113,7 @@ public class UnitModel : MonoBehaviour
 
 	}
 
-
-	public void setUnitState (Unit _unit)
-	{
-		this.unit = _unit;
-	}
-
-	public bool TakeDirectDamage (int _damage)
-	{
-		unit.armour = unit.armour - _damage;
-
-		if (unit.armour <= 0)
-			return true;
-		else
-			return false;
-
-	}
+	#region Damage Types
 
 	void takeLaserDamage (int _damage)
 	{
@@ -273,10 +268,13 @@ public class UnitModel : MonoBehaviour
 
 	}
 
+	#endregion
 
 	public void DestroyUnit ()
 	{
 		Destroy (gameObject);
 	}
+
+	#endregion
 
 }

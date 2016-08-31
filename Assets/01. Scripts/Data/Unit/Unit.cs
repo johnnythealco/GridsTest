@@ -32,15 +32,7 @@ public class Unit
 
 }
 
-public enum unitSize
-{
-	tiny = 0,
-	small = 1,
-	medium = 2,
-	large = 3,
-	massive = 4
-}
-
+#region Weapon
 [System.Serializable]
 public class Weapon
 {
@@ -60,6 +52,19 @@ public class Weapon
 	}
 
 }
+#endregion
+
+#region Enums
+public enum unitSize
+{
+	tiny = 0,
+	small = 1,
+	medium = 2,
+	large = 3,
+	massive = 4
+}
+
+
 
 public enum DamageType
 {
@@ -82,4 +87,5 @@ public class UnitCost
 	public int cost;
 }
 
+#endregion
 

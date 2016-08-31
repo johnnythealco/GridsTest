@@ -494,6 +494,8 @@ public class Battle : MonoBehaviour
 
 }
 
+#region Enums
+
 public enum BattleContext
 {
 	nothing_selected = 0,
@@ -509,3 +511,4 @@ public enum HightlightedContext
 	target = 3,
 	move = 4
 }
+#endregion
