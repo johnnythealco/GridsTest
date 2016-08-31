@@ -1,11 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using JK.Grids;
+using System.Linq;
 
 public class BattleAction : MonoBehaviour
 {
 
+	static List<Vector3> LegalMoves{ get; set; }
 
+	static List<Vector3> LegalTargets{ get; set; }
 
 	public static bool Execute (string _action, Vector3 _source, Vector3 _target, string _weapon)
 	{
@@ -55,7 +59,6 @@ public class BattleAction : MonoBehaviour
 
 
 	}
-
 
 	static bool BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition, string _weapon)
 	{
@@ -111,27 +114,184 @@ public class BattleAction : MonoBehaviour
 		return true;
 	}
 
-	static int GetActionRange (string _action, UnitModel _unit)
+
+
+	public static void GetLegalMoves (UnitModel _unit)
 	{
-		var _selectedWeapon = Game.Register.GetWeapon (_unit.selectedWeapon); 
+		BattleAction.LegalMoves = Game.BattleManager.BattleGrid.GetRange (_unit.transform.position, _unit.Engines); 
+
+	}
+
+	public static void GetLegalTargets (UnitModel _unit)
+	{
+		if (LegalTargets == null)
+			LegalTargets = new List<Vector3> ();
+		
+		LegalTargets.Clear (); 
+		switch (_unit.selectedAction)
+		{
+		case "Move":
+			{
+				return;
+			}
+		case "Attack":
+			{
+				var _weapon = Game.Register.GetWeapon (_unit.selectedWeapon);
+				if (_weapon != null)
+				{
+					LegalTargets.AddRange (getEnemyTargetsInRange (_unit, _weapon));
+				}
+			}
+			break;
+		case "Evade":
+			{
+				LegalTargets.Add (_unit.transform.position);
+			}
+			break;
+		}
+	}
+
+	static List<Vector3> getEnemyTargetsInRange (UnitModel _unit, Weapon _weapon)
+	{
+		List<Vector3> result = new List<Vector3> ();
+
+		var _grid = Game.BattleManager.BattleGrid;
+		var occupiedCells = _grid.occupiedCells;
+
+
+		foreach (var _cell in occupiedCells)
+		{
+			if (_cell.context == CellContext.unit && _cell.unit != null)
+			{
+				if (_cell.unit.faction != _unit.faction)
+				{
+					var _targetPostion = _cell.transform.position;
+					var _attackerPosition = _unit.transform.position;  
+					var distance = _grid.getPathToTarget (_attackerPosition, _targetPostion).Count (); 
+					if (distance <= _weapon.range)
+					{
+						result.Add (_targetPostion);
+					}
+				}	
+			}
+		}
+		return result;
+
+	}
+
+	public static HightlightedContext GetActionContext (string _action, Vector3 _point)
+	{
+
 
 		switch (_action)
 		{
 		case "Move":
 			{
-				return _unit.currentMovement;
+				return GetContextForMove (_point);
 			}
 		case "Attack":
 			{
-				return _selectedWeapon.range;
+				return GetContextForAttack (_point);
 			}
 		case "Evade":
 			{
-				return 0;
+				return GetContextForEvade (_point);
 			}
 		}
 
 		return 0;
+	}
+
+	static HightlightedContext GetContextForMove (Vector3 _point)
+	{
+		
+		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
+
+		switch (_cell.context)
+		{
+		case CellContext.empty:
+			{
+				if (BattleAction.LegalMoves.Contains (_point))
+					return HightlightedContext.move;
+				else
+					return HightlightedContext.nothing;
+			}
+		case CellContext.unit:
+			{
+				var _highlightedUnit = _cell.unit;
+
+				if (_highlightedUnit.faction == Game.PlayerName)
+				{
+					return HightlightedContext.unit;
+				} else
+				{
+					return HightlightedContext.enemy;
+				}
+			}
+		}
+
+		return HightlightedContext.nothing;
+	}
+
+	static HightlightedContext GetContextForAttack (Vector3 _point)
+	{
+		if (LegalTargets.Contains (_point))
+		{
+			return HightlightedContext.target;
+		} else
+		{		
+			var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
+			switch (_cell.context)
+			{
+			case CellContext.empty:
+				{				
+					return HightlightedContext.nothing;
+				}
+			case CellContext.unit:
+				{				
+					var _highlightedUnit = _cell.unit;
+					if (_highlightedUnit.faction == Game.PlayerName)
+					{
+						return HightlightedContext.unit;
+					} else
+					{
+						return HightlightedContext.enemy;
+					}
+				}
+			}
+		}
+	
+
+		return HightlightedContext.nothing;
+		
+	}
+
+	static HightlightedContext GetContextForEvade (Vector3 _point)
+	{
+
+		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
+
+		switch (_cell.context)
+		{
+		case CellContext.empty:
+			{
+				return HightlightedContext.nothing;
+			}
+		case CellContext.unit:
+			{
+				var _highlightedUnit = _cell.unit;
+
+				if (_highlightedUnit.faction == Game.PlayerName)
+				{
+					return HightlightedContext.unit;
+				} else
+				{
+					return HightlightedContext.enemy;
+				}
+			}
+		}
+
+		return HightlightedContext.nothing;
 	}
 
 }

@@ -90,6 +90,7 @@ public enum ArmourType
 	heavy = 2
 }
 
+
 [System.Serializable]
 public class UnitCost
 {

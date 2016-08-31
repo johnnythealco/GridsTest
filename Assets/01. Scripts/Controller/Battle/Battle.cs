@@ -36,8 +36,8 @@ public class Battle : MonoBehaviour
 
 
 
-	List<Vector3> moves = new List<Vector3> ();
-	List<Vector3> targets = new List<Vector3> ();
+	public List<Vector3> moves = new List<Vector3> ();
+	public List<Vector3> targets = new List<Vector3> ();
 
 	#endregion
 
@@ -123,12 +123,8 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onNoCellSelected ()
 	{
-		selectedUnitCursor.gameObject.SetActive (false);
 		gridCursor.gameObject.SetActive (false);
-		battleContext = BattleContext.nothing_selected;
 		highlightedContext = HightlightedContext.nothing;
-
-
 	}
 
 	void DeploymentManager_onSelectUnit (string _unit)
@@ -230,42 +226,49 @@ public class Battle : MonoBehaviour
 
 	void getCellContext (Vector3 _point, BattleCell _cell)
 	{
-		switch (_cell.context)
+		if (selectedUnit != null)
 		{
-		case CellContext.empty:
+			highlightedContext = BattleAction.GetActionContext (selectedUnit.selectedAction, _point);
+		} else
+		{
+
+			switch (_cell.context)
 			{
-				if (moves.Contains (_point))
-					highlightedContext = HightlightedContext.move;
-				else
-					highlightedContext = HightlightedContext.nothing;
-			}
-			break;
-
-		case CellContext.unit:
-			{
-				highlightedUnit = _cell.unit;
-
-				if (highlightedUnit.faction == Game.PlayerName)
+			case CellContext.empty:
 				{
-					highlightedContext = HightlightedContext.unit;
-				} else
-				{
-					getValidTargets ();
+					if (moves.Contains (_point))
+						highlightedContext = HightlightedContext.move;
+					else
+						highlightedContext = HightlightedContext.nothing;
+				}
+				break;
 
-					if (targets.Contains (_point))
+			case CellContext.unit:
+				{
+					highlightedUnit = _cell.unit;
+
+					if (highlightedUnit.faction == Game.PlayerName)
 					{
-						highlightedContext = HightlightedContext.target;
+						highlightedContext = HightlightedContext.unit;
 					} else
 					{
-						highlightedContext = HightlightedContext.enemy;
+						getValidTargets ();
+
+						if (targets.Contains (_point))
+						{
+							highlightedContext = HightlightedContext.target;
+						} else
+						{
+							highlightedContext = HightlightedContext.enemy;
+						}
+
+
 					}
-
-
 				}
-			}
-			break;
+				break;
 
-		}		
+			}		
+		}
 	}
 
 	#endregion
@@ -437,6 +440,8 @@ public class Battle : MonoBehaviour
 	void selectUnit (Vector3 _point, BattleCell _cell)
 	{
 		selectedUnit = _cell.unit;
+		BattleAction.GetLegalMoves (selectedUnit);
+		BattleAction.GetLegalTargets (selectedUnit);
 		unitDisplay.Prime (selectedUnit);
 
 		unitDisplay.gameObject.SetActive (true);
