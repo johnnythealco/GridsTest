@@ -8,23 +8,29 @@ public class Unit
 	public string faction;
 	public string unitType;
 	public unitSize size;
+
 	public int AP;
-	public int movement;
+	public int speed;
+
 	public int armour;
 	public ArmourType armourType;
+
 	public int sheilds;
+	public int engines;
 	public int evasion;
 
 
 	public List<string> weapons;
+	public List<string> actions;
 
 
 	public Unit (UnitModel _type, string _faction)
 	{
 		this.faction = _faction;
 		this.unitType = _type.DsiplayName;
-		this.movement = _type.Movement;
+		this.engines = _type.Engines;
 		this.weapons = _type.Weapons;
+		this.actions = _type.Actions;
 		this.size = _type.Size;
 		this.armour = _type.Armour;
 	}
@@ -39,20 +45,24 @@ public class Weapon
 	public string name;
 	public Sprite icon;
 	public int range = 1;
+	public int APcost;
 	public int accuracy = 1;
 	public int damage = 10;
 	public DamageType damageType;
 
+}
+#endregion
 
-
-	public int getDamage (unitSize _targetSize)
-	{
-
-		return 0;
-	}
+#region Action
+[System.Serializable]
+public class Icon
+{
+	public string name;
+	public Sprite icon;
 
 }
 #endregion
+
 
 #region Enums
 public enum unitSize

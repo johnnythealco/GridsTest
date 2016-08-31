@@ -111,4 +111,27 @@ public class BattleAction : MonoBehaviour
 		return true;
 	}
 
+	static int GetActionRange (string _action, UnitModel _unit)
+	{
+		var _selectedWeapon = Game.Register.GetWeapon (_unit.selectedWeapon); 
+
+		switch (_action)
+		{
+		case "Move":
+			{
+				return _unit.currentMovement;
+			}
+		case "Attack":
+			{
+				return _selectedWeapon.range;
+			}
+		case "Evade":
+			{
+				return 0;
+			}
+		}
+
+		return 0;
+	}
+
 }

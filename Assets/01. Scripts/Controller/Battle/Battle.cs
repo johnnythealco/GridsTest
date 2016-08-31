@@ -127,7 +127,7 @@ public class Battle : MonoBehaviour
 		gridCursor.gameObject.SetActive (false);
 		battleContext = BattleContext.nothing_selected;
 		highlightedContext = HightlightedContext.nothing;
-		selectedUnit = null;
+
 
 	}
 
@@ -146,6 +146,14 @@ public class Battle : MonoBehaviour
 		deploymentManager.onSelectUnit -= DeploymentManager_onSelectUnit;
 		deploymentManager.onEndDeployment -= DeploymentManager_onEndDeployment;
 
+	}
+
+	public void Unit_Action_Click ()
+	{
+		if (selectedUnit == null)
+			return;
+
+		Debug.Log (selectedUnit.DsiplayName + " " + selectedUnit.selectedAction);
 	}
 
 
@@ -313,7 +321,7 @@ public class Battle : MonoBehaviour
 		if (selectedUnit == null)
 			return;
 
-		moves = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Movement);
+		moves = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Engines);
 
 		foreach (var point in moves)
 		{
@@ -501,6 +509,7 @@ public enum BattleContext
 	nothing_selected = 0,
 	unit_default = 1,
 	Deployment = 2,
+	unit_Action = 3
 }
 
 public enum HightlightedContext

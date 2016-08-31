@@ -6,29 +6,40 @@ using System.Linq;
 [System.Serializable]
 public class UnitModel : MonoBehaviour
 {
+	#region Variables
+
 	public Unit unit;
 	public Sprite Icon;
 	public string DsiplayName;
+
 	public unitSize Size;
+
 	public int AP;
-	public int Movement;
+	public int Speed;
+
 	public int Armour;
 	public ArmourType ArmourType;
+
 	public int Sheilds;
+	public int Engines;
 	public int Evasion;
+
 	public List<string> Weapons;
+	public List<string> Actions;
+
 	public string selectedWeapon;
+	public string selectedAction;
+
+	#endregion
 
 	#region Getters & Setters
 
 	public string faction{ get { return unit.faction; } }
 
-	public int currentMovement{ get { return unit.movement; } }
+	public int currentMovement{ get { return unit.engines; } }
 
-	public int currentAttackRange
-	{
-		get
-		{ 
+	public int currentAttackRange {
+		get { 
 			var weapon = Game.Register.GetWeapon (selectedWeapon);		
 			return weapon.range;
 		}
@@ -36,20 +47,6 @@ public class UnitModel : MonoBehaviour
 
 	public int currentArmour{ get { return unit.armour; } }
 
-	public int getDamage (unitSize _targetSize)
-	{
-		if (selectedWeapon == null || selectedWeapon == "")
-			selectedWeapon = Weapons.First ();
-		
-		var weapon = Game.Register.GetWeapon (selectedWeapon);
-		if (weapon != null)
-			return weapon.getDamage (_targetSize);
-		else
-			return 0;
-
-
-		
-	}
 
 	public void setUnitState (Unit _unit)
 	{

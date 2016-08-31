@@ -44,6 +44,25 @@ public class Register : ScriptableObject
 
 	#endregion
 
+	#region Icons
+
+	public List<Icon> Icons;
+
+	public Sprite Geticon (string _name)
+	{
+		Sprite result = null;
+
+		foreach (var icon in Icons)
+		{
+			if (icon.name == _name)
+				result = icon.icon;
+		}
+		return result;
+
+	}
+
+	#endregion
+
 
 
 }
