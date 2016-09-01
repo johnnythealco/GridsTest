@@ -43,10 +43,12 @@ namespace JK
 			public List<BattleCell> occupiedCells = new List<BattleCell> ();
 
 
+
 			#region Grid Building
 
 			public void BuildGrid ()
 			{
+				Game.GridPoints = new List<Vector3> ();
 				size = 12;
 				padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
@@ -62,6 +64,7 @@ namespace JK
 					cell.transform.parent = this.transform;
 					cell.transform.localScale = Vector3.one;
 					cell.transform.localPosition = worldPoint;
+					Game.GridPoints.Add (worldPoint);
 
 					cell.name = point.ToString ();
 					Grid [point] = cell;

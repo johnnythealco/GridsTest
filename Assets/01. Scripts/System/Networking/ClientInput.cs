@@ -9,6 +9,7 @@ public class ClientInput :  NetworkBehaviour
 
 
 	NetManager NetMgr;
+	JKTesting jktesting;
 
 	#region Setup and Network Management
 
@@ -17,6 +18,9 @@ public class ClientInput :  NetworkBehaviour
 		DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
 		Debug.Log ("ClientInput is Awake"); 
+		jktesting = GameObject.Find ("! JKTESTING !").GetComponent<JKTesting> (); 
+
+
 
 
 	}
@@ -24,6 +28,7 @@ public class ClientInput :  NetworkBehaviour
 	void Start ()
 	{
 		Setup ();
+		jktesting.QuickDeploy ();
 	}
 
 	void Setup ()

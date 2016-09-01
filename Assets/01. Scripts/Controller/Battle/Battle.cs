@@ -12,6 +12,7 @@ public class Battle : MonoBehaviour
 	public SpriteRenderer cellBorder;
 	public DeploymentManager deploymentManager;
 	public UnitModelDisplay unitDisplay;
+	public CameraCTRL cameraCTRL;
 
 	public JKLog gameLog;
 
@@ -107,7 +108,7 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onRightClickCell (Vector3 _point, BattleCell _cell)
 	{
-		
+		cameraCTRL.CentreOn (_point);
 
 	}
 
@@ -319,14 +320,12 @@ public class Battle : MonoBehaviour
 		gridCursor.color = Color.green;
 	}
 
-	void showMoves ()
+	void showLegalMoves ()
 	{
 		if (selectedUnit == null)
 			return;
 
-		moves = BattleGrid.GetRange (selectedUnit.transform.position, selectedUnit.Engines);
-
-		foreach (var point in moves)
+		foreach (var point in BattleAction.LegalMoves)
 		{
 			var c = BattleGrid.GetCell (point);
 			c.Color = Color.gray;
@@ -384,10 +383,9 @@ public class Battle : MonoBehaviour
 					break;
 				case HightlightedContext.unit:
 					selectUnit (_point, _cell);
-					showMoves ();
+					showLegalMoves ();
 					break;
-				case HightlightedContext.nothing:
-					clearSelection ();
+				case HightlightedContext.nothing:					
 					break;
 				}
 			}
@@ -403,7 +401,7 @@ public class Battle : MonoBehaviour
 				case HightlightedContext.unit:
 					selectUnit (_point, _cell);
 					clearMoves ();
-					showMoves ();
+					showLegalMoves ();
 					break;
 				case HightlightedContext.move:
 					netWorkMove (selectedUnit.transform.position, highlightedPoint);

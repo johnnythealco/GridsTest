@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Game : MonoBehaviour
 {
@@ -13,12 +14,15 @@ public class Game : MonoBehaviour
 
 	public static Battle BattleManager{ get; set; }
 
+	public static List<Vector3> GridPoints{ get; set; }
+
 	void Awake ()
 	{
 		if (Manager == null)
 		{
 			Manager = this;
 			Register = register;
+
 		} else if (Manager != this)
 			Destroy (gameObject);
 

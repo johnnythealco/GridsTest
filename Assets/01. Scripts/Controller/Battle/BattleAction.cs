@@ -7,9 +7,9 @@ using System.Linq;
 public class BattleAction : MonoBehaviour
 {
 
-	static List<Vector3> LegalMoves{ get; set; }
+	public static List<Vector3> LegalMoves{ get; set; }
 
-	static List<Vector3> LegalTargets{ get; set; }
+	public static List<Vector3> LegalTargets{ get; set; }
 
 	public static bool Execute (string _action, Vector3 _source, Vector3 _target, string _weapon)
 	{
@@ -202,6 +202,8 @@ public class BattleAction : MonoBehaviour
 		return 0;
 	}
 
+	#region Action Context Getters
+
 	static HightlightedContext GetContextForMove (Vector3 _point)
 	{
 		
@@ -294,4 +296,5 @@ public class BattleAction : MonoBehaviour
 		return HightlightedContext.nothing;
 	}
 
+	#endregion
 }
