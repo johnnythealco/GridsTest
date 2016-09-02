@@ -27,6 +27,8 @@ namespace JK
 
 			public List<BattleCellState> State;
 
+			public List<UnitModel> units;
+
 			#region Delegates & Events
 
 			public delegate void FlatHexDelegate_point_cell (Vector3 _point, BattleCell _cell);
@@ -49,6 +51,7 @@ namespace JK
 			public void BuildGrid ()
 			{
 				Game.GridPoints = new List<Vector3> ();
+				units = new List<UnitModel> ();
 				size = 12;
 				padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
@@ -273,6 +276,11 @@ namespace JK
 				cell.isAccessible = false;
 
 				occupiedCells.Add (cell);
+
+				if (units.Contains (_unit) == false)
+				{
+					units.Add (_unit);
+				}
 			}
 
 			public void UnRegisterObject (Vector3 _point)
@@ -281,6 +289,7 @@ namespace JK
 				cell.context = CellContext.empty;
 				cell.isAccessible = true;
 				occupiedCells.Remove (cell);
+
 			}
 
 			public List<Vector3> GetRange (Vector3 _point, int _radius)
