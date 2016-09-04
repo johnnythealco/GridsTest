@@ -162,6 +162,18 @@ public class UnitModelDisplay : MonoBehaviour
 			Action.fontStyle = FontStyle.Normal;
 	}
 
+	public void Action_Click ()
+	{
+		var _selectedAction = unit.selectedAction;
+
+		if (_selectedAction != null || _selectedAction != "")
+		{
+			BattleAction.Action_Click (_selectedAction);
+		}
+
+
+	}
+
 
 
 }

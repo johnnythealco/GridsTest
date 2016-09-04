@@ -5,16 +5,19 @@ using System.Collections.Generic;
 [System.Serializable]
 public class Unit
 {
-	public string faction;
-	public string unitType;
-	public unitSize size;
+	public Vector3 Position{ get; set; }
+
+	public string Owner{ get; set; }
+
+	public string UnitType;
+
+	public unitSize Size{ get { return Game.Register.GetUnitType (UnitType).Size; } }
+
+	public ArmourType armourType { get { return Game.Register.GetUnitType (UnitType).ArmourType; } }
 
 	public int AP;
 	public int speed;
-
 	public int armour;
-	public ArmourType armourType;
-
 	public int sheilds;
 	public int engines;
 	public int evasion;
@@ -26,12 +29,13 @@ public class Unit
 
 	public Unit (UnitModel _type, string _faction)
 	{
-		this.faction = _faction;
-		this.unitType = _type.DsiplayName;
+		this.Owner = _faction;
+		this.UnitType = _type.DsiplayName;
+		this.AP = _type.AP;
+		this.speed = _type.Speed;
 		this.engines = _type.Engines;
 		this.weapons = _type.Weapons;
 		this.actions = _type.Actions;
-		this.size = _type.Size;
 		this.armour = _type.Armour;
 	}
 

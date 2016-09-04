@@ -15,7 +15,7 @@ public class JKTesting : MonoBehaviour
 
 	void Start ()
 	{
-		JKUnits = GetUnitTypes (JKFleet);
+		JKUnits = Game.Register.GetUnitTypes (JKFleet);
 	}
 
 
@@ -23,15 +23,21 @@ public class JKTesting : MonoBehaviour
 	{
 		if (Input.GetKeyDown (KeyCode.L))
 		{
-			var _units = Game.BattleManager.BattleGrid.units;
+			var _units = Battle.AllUnits;
 			DisplayList (_units);
 		}
 
-		if (Input.GetKey (KeyCode.S))
+		if (Input.GetKeyDown (KeyCode.S))
 		{
-			var _units = Game.BattleManager.BattleGrid.units;
-			var _positions = JKSort.SortUnits_Speed (_units, 0, _units.Count () - 1);  
-			Debug.Log (" Sorting List");
+			Battle.TurnManager.CmdSortList ();
+
+		}
+
+		if (Input.GetKeyDown (KeyCode.D))
+		{
+			var _SortedList = Battle.TurnManager.Units;
+
+			DisplayList (_SortedList);
 		}
 	
 	}
@@ -105,36 +111,6 @@ public class JKTesting : MonoBehaviour
 
 	}
 
-	List<UnitModel> GetUnitTypes (List<string> _Units)
-	{
-		var result = new List<UnitModel> ();
-
-		foreach (var name in _Units)
-		{
-			result.Add (Game.Register.GetUnitType (name));
-		}
-
-		return result;
-	}
-
-	List<UnitModel> GetUnitsFromPositions (List<Vector3> _positions)
-	{
-		var result = new List<UnitModel> ();
-		var _grid = Game.BattleManager.BattleGrid;
-
-		foreach (var _position in _positions)
-		{
-			var _cell = _grid.GetCell (_position);
-
-			if (_cell.unit != null)
-			{
-				result.Add (_cell.unit);
-			}
-		}
-
-		return result;
-
-	}
 
 
 }

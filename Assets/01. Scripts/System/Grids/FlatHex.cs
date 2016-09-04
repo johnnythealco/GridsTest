@@ -51,7 +51,7 @@ namespace JK
 			public void BuildGrid ()
 			{
 				Game.GridPoints = new List<Vector3> ();
-				units = new List<UnitModel> ();
+				Battle.AllUnits = new List<UnitModel> ();
 				size = 12;
 				padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
@@ -277,9 +277,9 @@ namespace JK
 
 				occupiedCells.Add (cell);
 
-				if (units.Contains (_unit) == false)
+				if (Battle.AllUnits.Contains (_unit) == false)
 				{
-					units.Add (_unit);
+					Battle.AllUnits.Add (_unit);
 				}
 			}
 

@@ -1,26 +1,48 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
 using JK.Grids;
+using System.Linq;
 
-public class Turn : MonoBehaviour
+public class Turn : NetworkBehaviour
 {
-	public static List<UnitModel> Units;
+	public  List<UnitModel> Units;
+	public List<Vector3> positions;
+
+	void Awake ()
+	{
+		Battle.TurnManager = this;
+		Units = new List<UnitModel> ();
+	}
+
+	[Command]
+	public  void CmdSortList ()
+	{
+		Units.AddRange (Battle.AllUnits);
+		SortUnits_Speed (Units, 0, Units.Count () - 1);  
+
+		var turnList = new TurnList ();
+		turnList.positions = Game.BattleManager.GetUnitPositions (Units); 
+		var JSON = JsonUtility.ToJson (turnList);
+
+		RpcUpdateTurnOrder (JSON);
+	}
+
+	[ClientRpc]
+	public void RpcUpdateTurnOrder (string _UnitPostions)
+	{
+		var turnlist = (TurnList)JsonUtility.FromJson<TurnList> (_UnitPostions);
 
 
-
-}
-
-public enum TurnPhase
-{
-	
-}
-
-public class JKSort
-{
+		Units = Game.BattleManager.GetUnitsFromPositions (turnlist.positions);
 
 
-	static int Partition_Speed (List<UnitModel> list, int left, int right)
+	}
+
+	#region Sorting
+
+	int Partition_Speed (List<UnitModel> list, int left, int right)
 	{
 		UnitModel pivot = list [left];
 
@@ -47,11 +69,8 @@ public class JKSort
 		}
 	}
 
-	public static List<Vector3> SortUnits_Speed (List<UnitModel> list, int left, int right)
+	void SortUnits_Speed (List<UnitModel> list, int left, int right)
 	{
-		var result = new List<Vector3> ();
-
-
 		if (left < right)
 		{
 			int pivotIdx = Partition_Speed (list, left, right);
@@ -63,13 +82,20 @@ public class JKSort
 				SortUnits_Speed (list, pivotIdx + 1, right);
 		}
 
-		foreach (var _unit in list)
-		{
-			result.Add (_unit.transform.position);
-		}
-
-		return result;
 	}
 
+	#endregion
+}
+
+public enum TurnPhase
+{
+	
+}
+
+[System.Serializable]
+public class TurnList
+{
+	public List<Vector3> positions;
 
 }
+

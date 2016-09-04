@@ -17,18 +17,13 @@ public class ClientInput :  NetworkBehaviour
 	{
 		DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
-		Debug.Log ("ClientInput is Awake"); 
-		jktesting = GameObject.Find ("! JKTESTING !").GetComponent<JKTesting> (); 
-
-
-
-
 	}
 
 	void Start ()
 	{
 		Setup ();
-		jktesting.QuickDeploy ();
+		BattleAction.StartBattle ();
+
 	}
 
 	void Setup ()
@@ -37,7 +32,7 @@ public class ClientInput :  NetworkBehaviour
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-			Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
+//				Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
 		}
 
 		if (!hasAuthority)
@@ -47,9 +42,6 @@ public class ClientInput :  NetworkBehaviour
 
 	}
 
-	/// <summary>
-	/// Disconnect this Player
-	/// </summary>
 	public void Disconnect ()
 	{
 

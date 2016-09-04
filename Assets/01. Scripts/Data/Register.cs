@@ -8,18 +8,30 @@ public class Register : ScriptableObject
 
 	public List<UnitModel> unitTypes;
 
-	public UnitModel GetUnitType (string _dsiplayname)
+	public UnitModel GetUnitType (string _UnitType)
 	{
 		UnitModel result = null;
 
 		foreach (var unitType in unitTypes)
 		{
-			if (unitType.DsiplayName == _dsiplayname)
+			if (unitType.DsiplayName == _UnitType)
 				result = unitType;
 		}
 
 		return result;
 
+	}
+
+	public List<UnitModel> GetUnitTypes (List<string> _UnitTypes)
+	{
+		var result = new List<UnitModel> ();
+
+		foreach (var name in _UnitTypes)
+		{
+			result.Add (GetUnitType (name));
+		}
+
+		return result;
 	}
 
 	#endregion

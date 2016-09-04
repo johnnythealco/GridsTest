@@ -6,10 +6,21 @@ using System.Linq;
 
 public class BattleAction : MonoBehaviour
 {
+	#region Properties
 
 	public static List<Vector3> LegalMoves{ get; set; }
 
 	public static List<Vector3> LegalTargets{ get; set; }
+
+	#endregion
+
+	#region Action Execution Network Recievers
+
+	public static void StartBattle ()
+	{ 
+		var jktesting = GameObject.Find ("! JKTESTING !").GetComponent<JKTesting> (); 
+		jktesting.QuickDeploy ();
+	}
 
 	public static bool Execute (string _action, Vector3 _source, Vector3 _target, string _weapon)
 	{
@@ -35,6 +46,43 @@ public class BattleAction : MonoBehaviour
 		return false;
 	}
 
+
+	#endregion
+
+	#region Action Local Revievers
+
+	public static void Action_Click (string _action)
+	{
+		var _SelectedUnit = Battle.SelectedUnit;
+
+		switch (_action)
+		{
+		case "Move":
+			{
+				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+			}
+			break;
+		case "Attack":
+			{
+				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+			}
+			break;
+		case "Evade":
+			{
+				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+			}
+			break;
+		case "End Turn":
+			{
+				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+			}
+			break;
+		}
+	}
+
+	#endregion
+
+	#region Action Ececution Methods
 
 	static bool MoveUnit (Vector3 _start, Vector3 _end)
 	{
@@ -89,7 +137,6 @@ public class BattleAction : MonoBehaviour
 		return true;
 	}
 
-
 	static bool DeployUnit (Unit _unit, Vector3 _position)
 	{
 		if (Game.BattleManager == null)
@@ -99,7 +146,7 @@ public class BattleAction : MonoBehaviour
 		var BattleGrid = battleManager.BattleGrid;
 
 		var register = Game.Manager.register;
-		var unitType = register.GetUnitType (_unit.unitType);
+		var unitType = register.GetUnitType (_unit.UnitType);
 
 		var unitModel = (UnitModel)Instantiate (unitType); 
 		unitModel.transform.position = _position;
@@ -109,12 +156,15 @@ public class BattleAction : MonoBehaviour
 		BattleGrid.RegisterUnit (_position, unitModel, CellContext.unit);
 
 
-		JKLog.Log (_unit.faction + " Deployed a " + _unit.unitType + " to " + _position.ToString ());
+		JKLog.Log (_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString ());
 
 		return true;
 	}
 
+	#endregion
 
+
+	#region Range and Target Methods
 
 	public static void GetLegalMoves (UnitModel _unit)
 	{
@@ -144,6 +194,11 @@ public class BattleAction : MonoBehaviour
 			}
 			break;
 		case "Evade":
+			{
+				LegalTargets.Add (_unit.transform.position);
+			}
+			break;
+		case "End Turn":
 			{
 				LegalTargets.Add (_unit.transform.position);
 			}
@@ -179,6 +234,11 @@ public class BattleAction : MonoBehaviour
 
 	}
 
+	#endregion
+
+
+	#region Action Context Getters
+
 	public static HightlightedContext GetActionContext (string _action, Vector3 _point)
 	{
 
@@ -197,12 +257,14 @@ public class BattleAction : MonoBehaviour
 			{
 				return GetContextForEvade (_point);
 			}
+		case "End Turn":
+			{
+				return GetContextForEndTurn (_point);
+			}
 		}
 
 		return 0;
 	}
-
-	#region Action Context Getters
 
 	static HightlightedContext GetContextForMove (Vector3 _point)
 	{
@@ -269,6 +331,34 @@ public class BattleAction : MonoBehaviour
 	}
 
 	static HightlightedContext GetContextForEvade (Vector3 _point)
+	{
+
+		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
+
+		switch (_cell.context)
+		{
+		case CellContext.empty:
+			{
+				return HightlightedContext.nothing;
+			}
+		case CellContext.unit:
+			{
+				var _highlightedUnit = _cell.unit;
+
+				if (_highlightedUnit.faction == Game.PlayerName)
+				{
+					return HightlightedContext.unit;
+				} else
+				{
+					return HightlightedContext.enemy;
+				}
+			}
+		}
+
+		return HightlightedContext.nothing;
+	}
+
+	static HightlightedContext GetContextForEndTurn (Vector3 _point)
 	{
 
 		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);

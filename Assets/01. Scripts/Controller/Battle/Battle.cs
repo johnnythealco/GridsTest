@@ -17,7 +17,13 @@ public class Battle : MonoBehaviour
 	public JKLog gameLog;
 
 
-	public FlatHex BattleGrid;
+	public FlatHex BattleGrid{ get; set; }
+
+	public static Turn TurnManager{ get; set; }
+
+	public static UnitModel SelectedUnit{ get; set; }
+
+	public static List<UnitModel> AllUnits{ get; set; }
 
 	string enemyFaction = "Enemy";
 
@@ -150,7 +156,7 @@ public class Battle : MonoBehaviour
 		if (selectedUnit == null)
 			return;
 
-		Debug.Log (selectedUnit.DsiplayName + " " + selectedUnit.selectedAction);
+
 	}
 
 
@@ -498,6 +504,42 @@ public class Battle : MonoBehaviour
 	}
 
 
+
+
+	#endregion
+
+	#region Utility Functions
+
+	public List<UnitModel> GetUnitsFromPositions (List<Vector3> _positions)
+	{
+		var result = new List<UnitModel> ();
+
+		foreach (var _position in _positions)
+		{
+			var _cell = BattleGrid.GetCell (_position);
+
+			if (_cell.unit != null)
+			{
+				result.Add (_cell.unit);
+			}
+		}
+
+		return result;
+
+	}
+
+	public List<Vector3> GetUnitPositions (List<UnitModel> _Units)
+	{
+		var result = new List<Vector3> ();
+
+		foreach (var _Unit in _Units)
+		{
+			result.Add (_Unit.transform.position);
+		}
+
+		return result;
+
+	}
 
 
 	#endregion
