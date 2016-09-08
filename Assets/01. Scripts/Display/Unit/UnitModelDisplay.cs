@@ -33,7 +33,7 @@ public class UnitModelDisplay : MonoBehaviour
 		if (unit.selectedAction == null || unit.selectedAction == "")
 			unit.selectedAction = unit.Actions.First ();
 
-		var _selectedActionIcon = Game.Register.Geticon (_unitModel.selectedAction);
+		var _selectedActionIcon = Game.Register.GetActionIcon (_unitModel.selectedAction);
 
 		if (UnitName != null)
 			UnitName.text = unit.DsiplayName;
@@ -80,7 +80,7 @@ public class UnitModelDisplay : MonoBehaviour
 			unit.selectedAction = _actionList [0];
 		}
 
-		var _selectedActionIcon = Game.Register.Geticon (unit.selectedAction);
+		var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
 
 		if (Action != null)
 			Action.text = unit.selectedAction;
@@ -101,7 +101,7 @@ public class UnitModelDisplay : MonoBehaviour
 			unit.selectedAction = _actionList [_actionList.Count () - 1];
 		}
 
-		var _selectedActionIcon = Game.Register.Geticon (unit.selectedAction);
+		var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
 
 		if (Action != null)
 			Action.text = unit.selectedAction;

@@ -11,33 +11,26 @@ public class JKTesting : MonoBehaviour
 	System.Random rnd = new System.Random ();
 
 
-	List<UnitModel> JKUnits;
-
 	void Start ()
 	{
-		JKUnits = Game.Register.GetUnitTypes (JKFleet);
+
 	}
 
 
 	void Update ()
 	{
-		if (Input.GetKeyDown (KeyCode.L))
-		{
-			var _units = Battle.AllUnits;
-			DisplayList (_units);
-		}
 
-		if (Input.GetKeyDown (KeyCode.S))
-		{
-			Battle.TurnManager.CmdSortList ();
-
-		}
 
 		if (Input.GetKeyDown (KeyCode.D))
 		{
 			var _SortedList = Battle.TurnManager.Units;
 
 			DisplayList (_SortedList);
+		}
+
+		if (Input.GetKeyDown (KeyCode.Space))
+		{
+			Game.BattleManager.StartBattle ();
 		}
 	
 	}

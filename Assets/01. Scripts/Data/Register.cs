@@ -56,20 +56,33 @@ public class Register : ScriptableObject
 
 	#endregion
 
-	#region Icons
+	#region Actions
 
-	public List<Icon> Icons;
+	public List<UnitAction> Actions;
 
-	public Sprite Geticon (string _name)
+	public Sprite GetActionIcon (string _name)
 	{
 		Sprite result = null;
 
-		foreach (var icon in Icons)
+		foreach (var action in Actions)
 		{
-			if (icon.name == _name)
-				result = icon.icon;
+			if (action.name == _name)
+				result = action.icon;
 		}
 		return result;
+
+	}
+
+	public TargetType GetActionTargetType (string _name)
+	{
+		
+
+		foreach (var action in Actions)
+		{
+			if (action.name == _name)
+				return action.targetType;
+		}
+		return TargetType.empty;
 
 	}
 

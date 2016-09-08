@@ -14,6 +14,7 @@ public class Battle : MonoBehaviour
 	public UnitModelDisplay unitDisplay;
 	public CameraCTRL cameraCTRL;
 
+
 	public JKLog gameLog;
 
 
@@ -25,7 +26,6 @@ public class Battle : MonoBehaviour
 
 	public static List<UnitModel> AllUnits{ get; set; }
 
-	string enemyFaction = "Enemy";
 
 	SpriteRenderer gridCursor;
 	SpriteRenderer selectedUnitCursor;
@@ -60,6 +60,9 @@ public class Battle : MonoBehaviour
 		BattleGrid.onRightClickCell += BattleGrid_onRightClickCell;
 		BattleGrid.onNoCellSelected += BattleGrid_onNoCellSelected;
 
+		Battle.TurnManager.onUnitStartTrun += OnUnitStartTrun;
+		Battle.TurnManager.onUnitEndTrun += OnUnitEndTrun;
+
 		battleContext = BattleContext.nothing_selected;
 		gameLog.gameObject.SetActive (true);
 
@@ -82,29 +85,7 @@ public class Battle : MonoBehaviour
 	void Update ()
 	{
 		
-		if (Input.GetKeyDown (KeyCode.S) && BattleGrid.GetCellAccessiblity (highlightedPoint))
-		{
-			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
 
-			var newUnit = new Unit (newUnitType, Game.PlayerName);
-			netWorkDeploy (newUnit, highlightedPoint);
-			highlightCell (highlightedPoint, highlightedCell);
-
-		}
-
-		if (Input.GetKeyDown (KeyCode.E) && BattleGrid.GetCellAccessiblity (highlightedPoint))
-		{
-			var newUnitType = Game.Manager.register.GetUnitType ("Fighter");
-
-			var newUnit = new Unit (newUnitType, enemyFaction);
-			netWorkDeploy (newUnit, highlightedPoint);
-		}
-
-		if (Input.GetKeyDown (KeyCode.Space))
-		{
-			var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-			LocalPlayer.CmdBattlePhase ("Starting");
-		}
 
 	}
 
@@ -120,7 +101,34 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onMouseOverCell (Vector3 _point, BattleCell _cell)
 	{
-		highlightCell (_point, _cell);
+//		if (Battle.TurnManager.activeUnit == null) 
+//			return;
+//		
+//		var _cell = BattleGrid.GetCell(_point);
+//		var _cellContents = _cell.context;
+//
+//		switch(_cellContents)
+//		{
+//		case CellContext.empty:
+//			BattleAction.currentTarget = TargetType.empty;
+//			break;
+//		case CellContext.unit:
+//			{
+//				if(_cell.unit.unit.Owner == Game.PlayerName)
+//					BattleAction.currentTarget = TargetType.ally;
+//				else
+//					BattleAction.currentTarget = TargetType.enemy;
+//			}
+//			break;
+//		}
+////
+//		switch(BattleAction.currentTarget)
+//		{
+//		case TargetType.empty:
+//			
+//		}
+
+
 	}
 
 	void BattleGrid_onClickCell (Vector3 _point, BattleCell _cell)
@@ -159,6 +167,31 @@ public class Battle : MonoBehaviour
 
 	}
 
+	void OnUnitStartTrun ()
+	{
+		var _point = Battle.TurnManager.activeUnit.transform.position;
+		var _unitName = Battle.TurnManager.activeUnit.DsiplayName;
+		var _owner = Battle.TurnManager.activeUnit.unit.Owner; 
+		cameraCTRL.CentreOn (_point);
+		JKLog.Log ("Starting Turn for " + _unitName + " Controlled by " + _owner);
+		selectUnit (_point);
+	
+	}
+
+
+	void OnUnitEndTrun ()
+	{
+		Battle.TurnManager.NextUnit ();
+	}
+
+	public void StartBattle ()
+	{
+
+		Battle.TurnManager.CmdSortList ();
+
+
+	
+	}
 
 
 
@@ -388,7 +421,7 @@ public class Battle : MonoBehaviour
 				case HightlightedContext.target:
 					break;
 				case HightlightedContext.unit:
-					selectUnit (_point, _cell);
+					selectUnit (_point);
 					showLegalMoves ();
 					break;
 				case HightlightedContext.nothing:					
@@ -405,7 +438,7 @@ public class Battle : MonoBehaviour
 					clearMoves ();
 					break;
 				case HightlightedContext.unit:
-					selectUnit (_point, _cell);
+					selectUnit (_point);
 					clearMoves ();
 					showLegalMoves ();
 					break;
@@ -441,8 +474,9 @@ public class Battle : MonoBehaviour
 		}
 	}
 
-	void selectUnit (Vector3 _point, BattleCell _cell)
+	void selectUnit (Vector3 _point)
 	{
+		var _cell = BattleGrid.GetCell (_point);
 		selectedUnit = _cell.unit;
 		BattleAction.GetLegalMoves (selectedUnit);
 		BattleAction.GetLegalTargets (selectedUnit);

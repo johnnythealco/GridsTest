@@ -17,7 +17,7 @@ public class BattleActionDisplay : MonoBehaviour
 	public void Prime (string _actionName)
 	{
 		action = _actionName;
-		var actionIcon = Game.Register.Geticon (action);
+		var actionIcon = Game.Register.GetActionIcon (action);
 
 		if (Icon != null)
 			Icon.sprite = actionIcon;

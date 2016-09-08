@@ -7,7 +7,7 @@ public class Unit
 {
 	public Vector3 Position{ get; set; }
 
-	public string Owner{ get; set; }
+	public string Owner;
 
 	public string UnitType;
 
@@ -59,10 +59,11 @@ public class Weapon
 
 #region Action
 [System.Serializable]
-public class Icon
+public class UnitAction
 {
 	public string name;
 	public Sprite icon;
+	public TargetType targetType;
 
 }
 #endregion
@@ -92,6 +93,13 @@ public enum ArmourType
 	light = 0,
 	medium = 1,
 	heavy = 2
+}
+
+public enum TargetType
+{
+	empty = 0,
+	enemy = 1,
+	ally = 2
 }
 
 

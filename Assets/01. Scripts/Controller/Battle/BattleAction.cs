@@ -12,6 +12,8 @@ public class BattleAction : MonoBehaviour
 
 	public static List<Vector3> LegalTargets{ get; set; }
 
+	public static TargetType currentTarget{ get; set; }
+
 	#endregion
 
 	#region Action Execution Network Recievers
@@ -53,28 +55,29 @@ public class BattleAction : MonoBehaviour
 
 	public static void Action_Click (string _action)
 	{
-		var _SelectedUnit = Battle.SelectedUnit;
+		var _ActiveUnit = Battle.TurnManager.activeUnit;
 
 		switch (_action)
 		{
 		case "Move":
 			{
-				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
 			}
 			break;
 		case "Attack":
 			{
-				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
 			}
 			break;
 		case "Evade":
 			{
-				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction); 
 			}
 			break;
 		case "End Turn":
-			{
-				Debug.Log (_SelectedUnit.DsiplayName + " " + _SelectedUnit.selectedAction);
+			{ 
+				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
+				Battle.TurnManager.EndUnitTurn ();
 			}
 			break;
 		}
@@ -116,12 +119,8 @@ public class BattleAction : MonoBehaviour
 		var battleManager = Game.BattleManager;
 		var BattleGrid = battleManager.BattleGrid;
 
-//		var _unit = BattleGrid.GetCell (_attackerPostion).unit;
+
 		var _target = BattleGrid.GetCell (_targetPosition).unit;
-
-
-//		var damage = _unit.getDamage (_target.Size);
-
 		var destroyed = _target.HitBy (_weapon);
 
 

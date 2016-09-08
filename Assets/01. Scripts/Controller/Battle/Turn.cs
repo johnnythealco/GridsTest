@@ -8,7 +8,13 @@ using System.Linq;
 public class Turn : NetworkBehaviour
 {
 	public  List<UnitModel> Units;
-	public List<Vector3> positions;
+	public UnitModel activeUnit;
+
+	public delegate void TurnDelegate ();
+
+	public event TurnDelegate onUnitStartTrun;
+	public event TurnDelegate onUnitEndTrun;
+
 
 	void Awake ()
 	{
@@ -16,9 +22,48 @@ public class Turn : NetworkBehaviour
 		Units = new List<UnitModel> ();
 	}
 
+	public void StartTurn ()
+	{
+		activeUnit = Units [0];
+		StartUnitTurn ();
+	}
+
+	public void StartUnitTurn ()
+	{
+		if (onUnitStartTrun != null)
+			onUnitStartTrun.Invoke ();
+	}
+
+
+	public void EndUnitTurn ()
+	{
+		if (onUnitEndTrun != null)
+			onUnitEndTrun.Invoke ();
+	}
+
+	public void NextUnit ()
+	{
+		var i = Units.IndexOf (activeUnit);
+
+		if (i < Units.Count () - 1)
+		{
+			activeUnit = Units [i + 1];
+		} else
+		{
+			activeUnit = Units [0];
+		}
+
+		StartUnitTurn ();
+
+
+	}
+
+	#region Sorting
+
 	[Command]
 	public  void CmdSortList ()
 	{
+		Units.Clear ();
 		Units.AddRange (Battle.AllUnits);
 		SortUnits_Speed (Units, 0, Units.Count () - 1);  
 
@@ -36,11 +81,11 @@ public class Turn : NetworkBehaviour
 
 
 		Units = Game.BattleManager.GetUnitsFromPositions (turnlist.positions);
+		Battle.TurnManager.StartTurn ();
 
 
 	}
 
-	#region Sorting
 
 	int Partition_Speed (List<UnitModel> list, int left, int right)
 	{
