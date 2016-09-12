@@ -31,7 +31,7 @@ namespace JK
 
 			#region Delegates & Events
 
-			public delegate void FlatHexDelegate_point_cell (Vector3 _point, BattleCell _cell);
+			public delegate void FlatHexDelegate_point_cell (Vector3 _point);
 
 			public delegate void FlatHexDelegate ();
 
@@ -185,12 +185,12 @@ namespace JK
 			{
 				if (Input.GetMouseButtonDown (0) && mouseOverGrid)
 				{
-					onClickCell.Invoke (Map [mouseGridPoint], Grid [mouseGridPoint]);
+					onClickCell.Invoke (Map [mouseGridPoint]);
 				}
 
 				if (Input.GetMouseButtonDown (1) & mouseOverGrid)
 				{
-					onRightClickCell.Invoke (Map [mouseGridPoint], Grid [mouseGridPoint]);
+					onRightClickCell.Invoke (Map [mouseGridPoint]);
 
 				}
 			}
@@ -227,7 +227,7 @@ namespace JK
 						{
 							mouseOverGrid = true;
 							mouseGridPoint = point;
-							onMouseOverCell.Invoke (Map [point], Grid [mouseGridPoint]);
+							onMouseOverCell.Invoke (Map [point]);
 						}
 
 						//if the mouse is not over the grid
@@ -253,8 +253,6 @@ namespace JK
 			{
 				return Grid [Map [_point]];
 			}
-
-
 
 			public CellContext GetCellContents (Vector3 _point)
 			{
@@ -311,12 +309,27 @@ namespace JK
 				return result;
 			}
 
+			public  List<Vector3> GetLine (Vector3 _Source, Vector3 _Traget)
+			{
+				var result = new List<Vector3> ();
+				var p1 = Map [_Source];
+				var p2 = Map [_Traget];
+				var points = Map.GetLine (p1, p2);
+
+				foreach (var point in points)
+				{
+					result.Add (Map [point]);
+				}
+				return result;
+
+			}
 
 			#endregion
 
 		}
 
 		#region Spawnpoints
+
 		public class SpawnPoint
 		{
 			public string name;
@@ -363,6 +376,7 @@ namespace JK
 		
 			}
 		}
+
 		#endregion
 	}
 }

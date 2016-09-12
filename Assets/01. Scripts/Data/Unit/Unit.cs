@@ -79,8 +79,6 @@ public enum unitSize
 	massive = 4
 }
 
-
-
 public enum DamageType
 {
 	kinetic = 0,
@@ -99,7 +97,8 @@ public enum TargetType
 {
 	empty = 0,
 	enemy = 1,
-	ally = 2
+	ally = 2,
+	self = 3
 }
 
 

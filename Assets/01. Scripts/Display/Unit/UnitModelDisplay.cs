@@ -21,6 +21,14 @@ public class UnitModelDisplay : MonoBehaviour
 	UnitModel unit;
 	List<WeaponDisplay> weaponDisplays = new List<WeaponDisplay> ();
 
+	#region Delegates & Events
+
+	public delegate void UnitModelDisplayDelegate ();
+
+	public event UnitModelDisplayDelegate onChangeAction;
+
+	#endregion
+
 
 	public void Prime (UnitModel _unitModel)
 	{
@@ -84,8 +92,12 @@ public class UnitModelDisplay : MonoBehaviour
 
 		if (Action != null)
 			Action.text = unit.selectedAction;
+		
 		if (ActionIcon != null)
 			ActionIcon.sprite = _selectedActionIcon;
+
+		if (onChangeAction != null)
+			onChangeAction.Invoke ();
 	}
 
 	public void PrevAction ()
@@ -107,6 +119,31 @@ public class UnitModelDisplay : MonoBehaviour
 			Action.text = unit.selectedAction;
 		if (ActionIcon != null)
 			ActionIcon.sprite = _selectedActionIcon;
+
+		if (onChangeAction != null)
+			onChangeAction.Invoke ();
+	}
+
+	public void SetAction (TargetType _targetType)
+	{
+
+		foreach (var _action in unit.Actions)
+		{
+			if (Game.Register.GetActionTargetType (_action) == _targetType)
+			{
+				unit.selectedAction = _action;
+				var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
+
+				if (Action != null)
+					Action.text = unit.selectedAction;
+				if (ActionIcon != null)
+					ActionIcon.sprite = _selectedActionIcon;
+				if (onChangeAction != null)
+					onChangeAction.Invoke ();
+				return;
+			}
+				
+		}
 	}
 
 

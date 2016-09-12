@@ -32,16 +32,16 @@ public class UnitModel : MonoBehaviour
 
 	#endregion
 
+
+
 	#region Getters & Setters
 
 	public string faction{ get { return unit.Owner; } }
 
 	public int currentMovement{ get { return unit.engines; } }
 
-	public int currentAttackRange
-	{
-		get
-		{ 
+	public int currentAttackRange {
+		get { 
 			var weapon = Game.Register.GetWeapon (selectedWeapon);		
 			return weapon.range;
 		}
@@ -54,6 +54,8 @@ public class UnitModel : MonoBehaviour
 	{
 		this.unit = _unit;
 	}
+
+
 
 	#endregion
 

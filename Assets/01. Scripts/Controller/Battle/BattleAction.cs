@@ -171,38 +171,31 @@ public class BattleAction : MonoBehaviour
 
 	}
 
-	public static void GetLegalTargets (UnitModel _unit)
+	public static void GetLegalTargets (TargetType _TargetType, int Range)
 	{
-		if (LegalTargets == null)
-			LegalTargets = new List<Vector3> ();
-		
-		LegalTargets.Clear (); 
-		switch (_unit.selectedAction)
-		{
-		case "Move":
-			{
-				return;
-			}
-		case "Attack":
-			{
-				var _weapon = Game.Register.GetWeapon (_unit.selectedWeapon);
-				if (_weapon != null)
-				{
-					LegalTargets.AddRange (getEnemyTargetsInRange (_unit, _weapon));
-				}
-			}
-			break;
-		case "Evade":
-			{
-				LegalTargets.Add (_unit.transform.position);
-			}
-			break;
-		case "End Turn":
-			{
-				LegalTargets.Add (_unit.transform.position);
-			}
-			break;
-		}
+//		if (LegalTargets == null)
+//			LegalTargets = new List<Vector3> ();
+//		
+//		LegalTargets.Clear ();
+//
+//		if (_TargetType == TargetType.self)
+//		{
+//			LegalTargets = Battle.TurnManager.activeUnit.transform.position;
+//			return;
+//		}
+//
+//
+//		switch (_unit.selectedAction)
+//		{
+//
+//				var _weapon = Game.Register.GetWeapon (_unit.selectedWeapon);
+//				if (_weapon != null)
+//				{
+//					LegalTargets.AddRange (getEnemyTargetsInRange (_unit, _weapon));
+//				}
+//			}
+//			break;		
+//		}
 	}
 
 	static List<Vector3> getEnemyTargetsInRange (UnitModel _unit, Weapon _weapon)
