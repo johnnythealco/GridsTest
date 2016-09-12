@@ -256,9 +256,9 @@ public class Battle : MonoBehaviour
 		} else
 		{
 
-			switch (_cell.context)
+			switch (_cell.contents)
 			{
-			case CellContext.empty:
+			case CellContents.empty:
 				{
 					if (moves.Contains (_point))
 						highlightedContext = HightlightedContext.move;
@@ -267,7 +267,7 @@ public class Battle : MonoBehaviour
 				}
 				break;
 
-			case CellContext.unit:
+			case CellContents.unit:
 				{
 					highlightedUnit = _cell.unit;
 
@@ -371,7 +371,7 @@ public class Battle : MonoBehaviour
 
 		foreach (var cell in occupiedCells)
 		{
-			if (cell.context == CellContext.unit)
+			if (cell.contents == CellContents.unit)
 			{
 				if (cell.unit.faction != Game.PlayerName)
 				{

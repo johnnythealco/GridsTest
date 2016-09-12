@@ -101,7 +101,7 @@ public class BattleAction : MonoBehaviour
 		foreach (var step in path)
 		{
 			BattleGrid.UnRegisterObject (_unit.transform.position);
-			BattleGrid.RegisterUnit (step, _unit, CellContext.unit);
+			BattleGrid.RegisterUnit (step, _unit, CellContents.unit);
 			_unit.transform.position = step;
 			JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " Move to " + step.ToString ());
 		}
@@ -152,7 +152,7 @@ public class BattleAction : MonoBehaviour
 		unitModel.setUnitState (_unit);
 
 		//Register on BattelGrid
-		BattleGrid.RegisterUnit (_position, unitModel, CellContext.unit);
+		BattleGrid.RegisterUnit (_position, unitModel, CellContents.unit);
 
 
 		JKLog.Log (_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString ());
@@ -208,7 +208,7 @@ public class BattleAction : MonoBehaviour
 
 		foreach (var _cell in occupiedCells)
 		{
-			if (_cell.context == CellContext.unit && _cell.unit != null)
+			if (_cell.contents == CellContents.unit && _cell.unit != null)
 			{
 				if (_cell.unit.faction != _unit.faction)
 				{
@@ -263,16 +263,16 @@ public class BattleAction : MonoBehaviour
 		
 		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
 
-		switch (_cell.context)
+		switch (_cell.contents)
 		{
-		case CellContext.empty:
+		case CellContents.empty:
 			{
 				if (BattleAction.LegalMoves.Contains (_point))
 					return HightlightedContext.move;
 				else
 					return HightlightedContext.nothing;
 			}
-		case CellContext.unit:
+		case CellContents.unit:
 			{
 				var _highlightedUnit = _cell.unit;
 
@@ -297,13 +297,13 @@ public class BattleAction : MonoBehaviour
 		} else
 		{		
 			var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
-			switch (_cell.context)
+			switch (_cell.contents)
 			{
-			case CellContext.empty:
+			case CellContents.empty:
 				{				
 					return HightlightedContext.nothing;
 				}
-			case CellContext.unit:
+			case CellContents.unit:
 				{				
 					var _highlightedUnit = _cell.unit;
 					if (_highlightedUnit.faction == Game.PlayerName)
@@ -327,13 +327,13 @@ public class BattleAction : MonoBehaviour
 
 		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
 
-		switch (_cell.context)
+		switch (_cell.contents)
 		{
-		case CellContext.empty:
+		case CellContents.empty:
 			{
 				return HightlightedContext.nothing;
 			}
-		case CellContext.unit:
+		case CellContents.unit:
 			{
 				var _highlightedUnit = _cell.unit;
 
@@ -355,13 +355,13 @@ public class BattleAction : MonoBehaviour
 
 		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
 
-		switch (_cell.context)
+		switch (_cell.contents)
 		{
-		case CellContext.empty:
+		case CellContents.empty:
 			{
 				return HightlightedContext.nothing;
 			}
-		case CellContext.unit:
+		case CellContents.unit:
 			{
 				var _highlightedUnit = _cell.unit;
 

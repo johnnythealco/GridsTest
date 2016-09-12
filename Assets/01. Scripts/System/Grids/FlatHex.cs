@@ -254,10 +254,10 @@ namespace JK
 				return Grid [Map [_point]];
 			}
 
-			public CellContext GetCellContents (Vector3 _point)
+			public CellContents GetCellContents (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
-				return cell.context;
+				return cell.contents;
 			}
 
 			public bool GetCellAccessiblity (Vector3 _point)
@@ -266,11 +266,11 @@ namespace JK
 				return cell.isAccessible;
 			}
 
-			public void RegisterUnit (Vector3 _point, UnitModel _unit, CellContext _contents)
+			public void RegisterUnit (Vector3 _point, UnitModel _unit, CellContents _contents)
 			{
 				var cell = Grid [Map [_point]];
 				cell.unit = _unit;
-				cell.context = _contents;
+				cell.contents = _contents;
 				cell.isAccessible = false;
 
 				occupiedCells.Add (cell);
@@ -284,7 +284,7 @@ namespace JK
 			public void UnRegisterObject (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
-				cell.context = CellContext.empty;
+				cell.contents = CellContents.empty;
 				cell.isAccessible = true;
 				occupiedCells.Remove (cell);
 
@@ -323,6 +323,37 @@ namespace JK
 				return result;
 
 			}
+
+
+			//			public  List<Vector3> GetTargets (Vector3 _Source, int _range)
+			//			{
+			//				var result = new List<Vector3> ();
+			//				var sourceGridPoint = Map [_Source];
+			//
+			//				var _unitsInRange = new List<FlatHexPoint> ();
+			//
+			//				foreach (var _gridPoint in Grid.AsEnumerable<FlatHexPoint>())
+			//				{
+			//					if (_gridPoint.DistanceFrom (sourceGridPoint) <= _range)
+			//					{
+			//						if (Grid [_gridPoint].contents == CellContents.unit && Grid [_gridPoint].unit != null)
+			//						{
+			//							_unitsInRange.Add (_gridPoint);
+			//						}
+			//					}
+			//				}
+			//
+			//				foreach (var _unit in _unitsInRange)
+			//				{
+			//					var points = Map.GetLine (sourceGridPoint, _unit);
+			//				}
+			//
+			//
+			//
+			//
+			//				return result;
+			//
+			//			}
 
 			#endregion
 

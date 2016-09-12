@@ -12,8 +12,9 @@ namespace JK
 		public class BattleCell : SpriteCell
 		{
 			public bool isAccessible = true;
+			public bool isBlocking = false;
 			public float Cost = 1;
-			public CellContext context;
+			public CellContents contents;
 			public UnitModel unit;
 		}
 	}
@@ -26,7 +27,7 @@ public class BattleCellState
 	public Vector3 position;
 	public bool isAccessible = true;
 	public float Cost = 1;
-	public CellContext context;
+	public CellContents context;
 
 	public BattleCellState ()
 	{
@@ -38,7 +39,7 @@ public class BattleCellState
 		this.position = _cell.gameObject.transform.position;
 		this.isAccessible = _cell.isAccessible;
 		this.Cost = _cell.Cost;
-		this.context = _cell.context;
+		this.context = _cell.contents;
 
 	}
 }
@@ -57,7 +58,7 @@ public class BattleState
 
 
 
-public enum CellContext
+public enum CellContents
 {
 	empty = 0,
 	unit = 2
