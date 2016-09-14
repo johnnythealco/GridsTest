@@ -81,6 +81,7 @@ public class CameraCTRL : MonoBehaviour
 	public void CentreOn (Vector3 point)
 	{
 		this.transform.position = point + offSet;
-	}
+        thisCamera.fieldOfView = 50.0f;
+    }
 
 }

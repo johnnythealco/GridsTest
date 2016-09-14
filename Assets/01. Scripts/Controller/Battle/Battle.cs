@@ -27,7 +27,8 @@ public class Battle : MonoBehaviour
 
 	SpriteRenderer gridCursor;
 	SpriteRenderer selectedUnitCursor;
-	BattleContext battleContext;
+    SpriteRenderer selectedTargetCursor;
+    BattleContext battleContext;
 	HightlightedContext highlightedContext;
 	Vector3 highlightedPoint;
 	UnitModel selectedUnit;
@@ -36,7 +37,6 @@ public class Battle : MonoBehaviour
 
 	public List<Vector3> moves = new List<Vector3> ();
 	public List<Vector3> targets = new List<Vector3> ();
-
 	public List<Vector3> line = new List<Vector3> ();
 
 
@@ -62,13 +62,13 @@ public class Battle : MonoBehaviour
 
 
 		gridCursor = Instantiate (cellBorder) as SpriteRenderer;
-		gridCursor.gameObject.SetActive (false);
+	    selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
+        selectedTargetCursor = Instantiate(cellBorder) as SpriteRenderer;
+        selectedUnitCursor.gameObject.SetActive (false);
+        selectedTargetCursor.gameObject.SetActive(false);
+        gridCursor.gameObject.SetActive(false);
 
-
-		selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
-		selectedUnitCursor.gameObject.SetActive (false);
-
-	}
+    }
 
 
 
@@ -86,46 +86,49 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onRightClickCell (Vector3 _point)
 	{
-		foreach (var p in line)
-		{
-			var cell = BattleGrid.GetCell (p);
-			cell.Color = Color.white;
-		}
+		//foreach (var p in line)
+		//{
+		//	var cell = BattleGrid.GetCell (p);
+		//	cell.Color = Color.white;
+		//}
 
-		line.Clear ();
+		//line.Clear ();
 
-		var start = TurnManager.activeUnit.transform.position;
+		//var start = TurnManager.activeUnit.transform.position;
 
-		line = BattleGrid.GetLine (start, _point);
+		//line = BattleGrid.GetLine (start, _point);
 
-		foreach (var p in line)
-		{
-			var cell = BattleGrid.GetCell (p);
-			cell.Color = Color.cyan;
-		}
+		//foreach (var p in line)
+		//{
+		//	var cell = BattleGrid.GetCell (p);
+		//	cell.Color = Color.cyan;
+		//}
 
 	}
 
 	void BattleGrid_onMouseOverCell (Vector3 _point)
 	{
-//		if (BattleAction.LegalMoves.Contains (_point))
-//		{
-//			highlightMove (_point);
-//			return;
-//		}
-//
-//		if (BattleAction.LegalTargets.Contains (_point))
-//		{
-//			highlightTarget (_point);
-//			return;
-//		}
-//
-//		highlightEmptyCell (_point);
+        if (BattleAction.LegalMoves == null)
+            return;
+
+        if (BattleAction.LegalMoves.Contains(_point))
+        {
+            highlightMove(_point);
+            return;
+        }
+
+        if (BattleAction.LegalTargets != null && BattleAction.LegalTargets.Contains(_point))
+        {
+            highlightTarget(_point);
+            return;
+        }
+
+        highlightEmptyCell (_point);
 	}
 
 	void BattleGrid_onClickCell (Vector3 _point)
 	{
-		selectCell (_point);
+		
 	}
 
 	void BattleGrid_onNoCellSelected ()
@@ -307,6 +310,13 @@ public class Battle : MonoBehaviour
 		highlightedUnit = null;
 	}
 
+    void highlightActiveUnit(Vector3 _point)
+    {
+        selectedUnitCursor.gameObject.SetActive(true);
+        selectedUnitCursor.color = Color.blue;
+        selectedUnitCursor.transform.position = _point;
+    }
+
 	void highlightDeployment (Vector3 _point)
 	{
 		gridCursor.color = Color.yellow;
@@ -319,7 +329,8 @@ public class Battle : MonoBehaviour
 	{
 		var _cell = BattleGrid.GetCell (_point); 
 		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
+        gridCursor.gameObject.SetActive(true);
+        highlightedUnit = _cell.unit;
 		gridCursor.color = Color.green;
 	}
 
@@ -327,7 +338,8 @@ public class Battle : MonoBehaviour
 	{
 		var _cell = BattleGrid.GetCell (_point); 
 		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
+        gridCursor.gameObject.SetActive(true);
+        highlightedUnit = _cell.unit;
 		gridCursor.color = Color.red;
 	}
 
@@ -335,7 +347,8 @@ public class Battle : MonoBehaviour
 	{
 		var _cell = BattleGrid.GetCell (_point); 
 		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
+        gridCursor.gameObject.SetActive(true);
+        highlightedUnit = _cell.unit;
 		gridCursor.color = Color.magenta;
 	}
 
@@ -343,7 +356,8 @@ public class Battle : MonoBehaviour
 	{
 		var _cell = BattleGrid.GetCell (_point); 
 		gridCursor.transform.position = _point;
-		highlightedUnit = _cell.unit;
+        gridCursor.gameObject.SetActive(true);
+        highlightedUnit = _cell.unit;
 		gridCursor.color = Color.green;
 	}
 
@@ -453,21 +467,21 @@ public class Battle : MonoBehaviour
 	void selectUnit (Vector3 _point)
 	{
 		var _cell = BattleGrid.GetCell (_point);
-		selectedUnit = _cell.unit;
-		BattleAction.GetLegalMoves (selectedUnit);
-//		BattleAction.GetLegalTargets (selectedUnit);
-		unitDisplay.Prime (selectedUnit);
+        var _unit = _cell.unit;
 
-		unitDisplay.gameObject.SetActive (true);
+        TurnManager.activeUnit = _unit;
+		BattleAction.GetLegalMoves (_unit);
+		unitDisplay.Prime (_unit);
+        highlightActiveUnit(_point);
+    }
 
-		battleContext = BattleContext.unit_default;
+    void selectTarget(Vector3 _point)
+    {
+        var _cell = BattleGrid.GetCell(_point);
+        highlightActiveUnit(_point);
+    }
 
-		selectedUnitCursor.gameObject.SetActive (true);
-		selectedUnitCursor.color = Color.blue;
-		selectedUnitCursor.transform.position = _point;
-	}
-
-	void clearSelection ()
+    void clearSelection ()
 	{
 		selectedUnit = null;
 		battleContext = BattleContext.nothing_selected;

@@ -9,8 +9,9 @@ public class Turn : NetworkBehaviour
 {
 	public  List<UnitModel> Units;
 	public UnitModel activeUnit;
+    public UnitModel activeTarget; 
 
-	public delegate void TurnDelegate ();
+    public delegate void TurnDelegate ();
 
 	public event TurnDelegate onUnitStartTrun;
 	public event TurnDelegate onUnitEndTrun;
