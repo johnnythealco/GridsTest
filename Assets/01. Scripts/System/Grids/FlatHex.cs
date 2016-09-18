@@ -244,22 +244,13 @@ namespace JK
 
 			#region Utility Methods
 
-			public void LogVector3ToGridPoint (Vector3 _point)
-			{
-				Debug.Log ("Grid Point : " + Map [_point].ToString ());
-			}
 
 			public BattleCell GetCell (Vector3 _point)
 			{
 				return Grid [Map [_point]];
 			}
 
-			public CellContents GetCellContents (Vector3 _point)
-			{
-				var cell = Grid [Map [_point]];
-				return cell.contents;
-			}
-
+	
 			public bool GetCellAccessiblity (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
@@ -285,6 +276,7 @@ namespace JK
 			{
 				var cell = Grid [Map [_point]];
 				cell.contents = CellContents.empty;
+                cell.unit = null;
 				cell.isAccessible = true;
 				occupiedCells.Remove (cell);
 
@@ -309,55 +301,51 @@ namespace JK
 				return result;
 			}
 
-			public  List<Vector3> GetLine (Vector3 _Source, Vector3 _Traget)
-			{
-				var result = new List<Vector3> ();
-				var p1 = Map [_Source];
-				var p2 = Map [_Traget];
-				var points = Map.GetLine (p1, p2);
+			public List<Vector3> GetTargets(Vector3 _Source, int _range, TargetType _targetType)
+            {
+                
+                var sourceGridPoint = Map[_Source];
 
-				foreach (var point in points)
-				{
-					result.Add (Map [point]);
-				}
-				return result;
+                var _unitsInRange = new List<FlatHexPoint>();
+                var validTargets = new List<Vector3>();
 
-			}
+                foreach (var _gridPoint in Grid.AsEnumerable<FlatHexPoint>())
+                {
+                    if (_gridPoint.DistanceFrom(sourceGridPoint) <= _range)
+                    {
+                        if (Grid[_gridPoint].contents == CellContents.unit && Grid[_gridPoint].unit != null)
+                        {
+                            var _unit = Grid[_gridPoint].unit;
+                            if (_unit.targetType == _targetType)
+                            {
+                                _unitsInRange.Add(_gridPoint);
+                            }
+                        }
+                    }
+                }
 
 
-			//			public  List<Vector3> GetTargets (Vector3 _Source, int _range)
-			//			{
-			//				var result = new List<Vector3> ();
-			//				var sourceGridPoint = Map [_Source];
-			//
-			//				var _unitsInRange = new List<FlatHexPoint> ();
-			//
-			//				foreach (var _gridPoint in Grid.AsEnumerable<FlatHexPoint>())
-			//				{
-			//					if (_gridPoint.DistanceFrom (sourceGridPoint) <= _range)
-			//					{
-			//						if (Grid [_gridPoint].contents == CellContents.unit && Grid [_gridPoint].unit != null)
-			//						{
-			//							_unitsInRange.Add (_gridPoint);
-			//						}
-			//					}
-			//				}
-			//
-			//				foreach (var _unit in _unitsInRange)
-			//				{
-			//					var points = Map.GetLine (sourceGridPoint, _unit);
-			//				}
-			//
-			//
-			//
-			//
-			//				return result;
-			//
-			//			}
+                foreach (var _unit in _unitsInRange)
+                {
+                    var _path = Map.GetLine(sourceGridPoint, _unit);
 
-			#endregion
+                    foreach(var step in _path)
+                    {
+                        //if the path is blocked break out of the loop and go to check next unit;
+                        if (Grid[step].isAccessible == false)
+                            break;
 
-		}
+                        validTargets.Add(Grid[_unit].transform.position);
+                    }
+                }
+                
+                return validTargets;
+
+            }
+
+            #endregion
+
+        }
 
 		#region Spawnpoints
 

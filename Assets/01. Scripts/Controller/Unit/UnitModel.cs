@@ -30,6 +30,8 @@ public class UnitModel : MonoBehaviour
 	public string selectedWeapon;
 	public string selectedAction;
 
+  
+
 	#endregion
 
 
@@ -47,10 +49,29 @@ public class UnitModel : MonoBehaviour
 		}
 	}
 
-	public int currentArmour{ get { return unit.armour; } }
+	public int currentArmour{ get { return unit.armour; }}
 
 
-	public void setUnitState (Unit _unit)
+    public TargetType targetType
+    {
+        get
+        {
+            if (this == BattleAction.ActiveUnit && this.unit.Owner == Game.PlayerName)
+                return TargetType.self;
+
+            if (this.unit.Owner == Game.PlayerName)
+            {
+                return TargetType.ally;
+            }
+            else
+            {
+                return TargetType.enemy;
+            }
+        }
+    }
+
+
+    public void setUnitState (Unit _unit)
 	{
 		this.unit = _unit;
 	}

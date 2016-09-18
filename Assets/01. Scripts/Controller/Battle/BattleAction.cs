@@ -6,13 +6,21 @@ using System.Linq;
 
 public class BattleAction : MonoBehaviour
 {
-	#region Properties
+    #region Properties
 
-	public static List<Vector3> LegalMoves{ get; set; }
+    public static UnitModel ActiveUnit { get; set; }
+
+    public static List<Vector3> LegalMoves{ get; set; }
 
 	public static List<Vector3> LegalTargets{ get; set; }
 
-	public static TargetType currentTarget{ get; set; }
+	public static TargetType CurrentTargetType{ get; set; }
+
+    public static UnitModel ActiveTarget { get; set; }
+
+    public static Vector3 Destination { get; set; }
+
+    public static List<Vector3> Path { get; set; }
 
 	#endregion
 
@@ -24,14 +32,14 @@ public class BattleAction : MonoBehaviour
 		jktesting.QuickDeploy ();
 	}
 
-	public static bool Execute (string _action, Vector3 _source, Vector3 _target, string _weapon)
+	public static bool Execute (string _action, Vector3 _target, string _param)
 	{
 		switch (_action)
 		{
 		case "MoveUnit":
-			return MoveUnit (_source, _target);
+			return MoveUnit (_target);
 		case "BasicAttack":
-			return BasicAttack (_source, _target, _weapon);
+			return BasicAttack ( _target, _param);
 		}
 		return false;
 	}
@@ -55,15 +63,17 @@ public class BattleAction : MonoBehaviour
 
 	public static void Action_Click (string _action)
 	{
-		var _ActiveUnit = Battle.TurnManager.activeUnit;
+		var _ActiveUnit = BattleAction.ActiveUnit;
 
 		switch (_action)
 		{
 		case "Move":
-			{
-				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
-			}
-			break;
+                {
+                    var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
+                    var _destination = Destination;
+                    LocalPlayer.CmdBattleAction("MoveUnit", _destination, "none");
+                }
+                break;
 		case "Attack":
 			{
 				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
@@ -87,7 +97,7 @@ public class BattleAction : MonoBehaviour
 
 	#region Action Ececution Methods
 
-	static bool MoveUnit (Vector3 _start, Vector3 _end)
+	static bool MoveUnit (Vector3 _end)
 	{
 		if (Game.BattleManager == null)
 			return false;
@@ -95,23 +105,27 @@ public class BattleAction : MonoBehaviour
 		var battleManager = Game.BattleManager;
 		var BattleGrid = battleManager.BattleGrid;
 
-		var _unit = BattleGrid.GetCell (_start).unit;
+	
+        var _start = ActiveUnit.transform.position;
 		var path = BattleGrid.getGridPath (_start, _end);
 
 		foreach (var step in path)
 		{
-			BattleGrid.UnRegisterObject (_unit.transform.position);
-			BattleGrid.RegisterUnit (step, _unit, CellContents.unit);
-			_unit.transform.position = step;
-			JKLog.Log (_unit.faction + " " + _unit.DsiplayName + " Move to " + step.ToString ());
+			BattleGrid.UnRegisterObject (ActiveUnit.transform.position);
+			BattleGrid.RegisterUnit (step, ActiveUnit, CellContents.unit);
+            ActiveUnit.transform.position = step;
+			JKLog.Log (ActiveUnit.faction + " " + ActiveUnit.DsiplayName + " Move to " + step.ToString ());
 		}
+
+        battleManager.ClearPathSteps();
+        GetLegalMoves(ActiveUnit);
 
 		return true;
 
 
 	}
 
-	static bool BasicAttack (Vector3 _attackerPostion, Vector3 _targetPosition, string _weapon)
+	static bool BasicAttack ( Vector3 _targetPosition, string _weapon)
 	{
 		if (Game.BattleManager == null)
 			return false;
@@ -119,9 +133,9 @@ public class BattleAction : MonoBehaviour
 		var battleManager = Game.BattleManager;
 		var BattleGrid = battleManager.BattleGrid;
 
+        var _target = BattleGrid.GetCell (_targetPosition).unit;
 
-		var _target = BattleGrid.GetCell (_targetPosition).unit;
-		var destroyed = _target.HitBy (_weapon);
+        var destroyed = _target.HitBy (_weapon);
 
 
 
@@ -171,32 +185,57 @@ public class BattleAction : MonoBehaviour
 
 	}
 
-	public static void GetLegalTargets (TargetType _TargetType, int Range)
-	{
-//		if (LegalTargets == null)
-//			LegalTargets = new List<Vector3> ();
-//		
-//		LegalTargets.Clear ();
-//
-//		if (_TargetType == TargetType.self)
-//		{
-//			LegalTargets = Battle.TurnManager.activeUnit.transform.position;
-//			return;
-//		}
-//
-//
-//		switch (_unit.selectedAction)
-//		{
-//
-//				var _weapon = Game.Register.GetWeapon (_unit.selectedWeapon);
-//				if (_weapon != null)
-//				{
-//					LegalTargets.AddRange (getEnemyTargetsInRange (_unit, _weapon));
-//				}
-//			}
-//			break;		
-//		}
-	}
+    public static void GetLegalTargets(string _Action)
+    {
+
+        var _TargetType = Game.Register.GetActionTargetType(_Action);
+        var _source = ActiveUnit.transform.position; 
+
+        if (LegalTargets == null)
+            LegalTargets = new List<Vector3>();
+
+        LegalTargets.Clear();
+
+        if (_TargetType == TargetType.self)
+        {
+            LegalTargets.Add(ActiveUnit.transform.position);
+            return;
+        }
+
+
+        int _range;
+
+        if (_Action == "Attack")
+        {
+            var _selectedWeapon = ActiveUnit.selectedWeapon;
+            _range = Game.Register.GetWeapon(_selectedWeapon).range;
+        }
+        else
+        {
+            _range = Game.Register.GetActionRange(_Action);
+        }
+
+        switch (_TargetType)
+        {
+            case TargetType.enemy:
+                {
+                   LegalTargets =  Game.BattleManager.BattleGrid.GetTargets(_source, _range, TargetType.enemy); 
+                }
+                break;
+            case TargetType.ally:
+                {
+                    LegalTargets = Game.BattleManager.BattleGrid.GetTargets(_source, _range, TargetType.ally);
+                }
+                break;
+            case TargetType.empty:
+                {
+
+                }
+                break;
+        }
+    }
+
+
 
 	static List<Vector3> getEnemyTargetsInRange (UnitModel _unit, Weapon _weapon)
 	{

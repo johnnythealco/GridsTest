@@ -111,25 +111,25 @@ public class ClientInput :  NetworkBehaviour
 
 
 	[Command]
-	public void CmdBattleAction (string _type, Vector3 _point1, Vector3 _point2, string _weapon)
+	public void CmdBattleAction (string _type, Vector3 _target, string _param)
 	{
-		RpcBattleAction (_type, _point1, _point2, _weapon);
+		RpcBattleAction (_type, _target, _param);
 	}
 
 	[ClientRpc]
-	public void RpcBattleAction (string _type, Vector3 _point1, Vector3 _point2, string _weapon)
+	public void RpcBattleAction (string _type, Vector3 _target, string _param)
 	{
 		switch (_type)
 		{
 
 		case "MoveUnit":
 			{
-				BattleAction.Execute ("MoveUnit", _point1, _point2, _weapon);
+				BattleAction.Execute ("MoveUnit", _target, _param);
 			}
 			break;
 		case "BasicAttack":
 			{
-				BattleAction.Execute ("BasicAttack", _point1, _point2, _weapon);
+				BattleAction.Execute ("BasicAttack", _target, _param);
 			}
 			break;
 

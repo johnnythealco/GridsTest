@@ -8,8 +8,6 @@ using System.Linq;
 public class Turn : NetworkBehaviour
 {
 	public  List<UnitModel> Units;
-	public UnitModel activeUnit;
-    public UnitModel activeTarget; 
 
     public delegate void TurnDelegate ();
 
@@ -25,7 +23,7 @@ public class Turn : NetworkBehaviour
 
 	public void StartTurn ()
 	{
-		activeUnit = Units [0];
+        BattleAction.ActiveUnit = Units [0];
 		StartUnitTurn ();
 	}
 
@@ -42,22 +40,28 @@ public class Turn : NetworkBehaviour
 			onUnitEndTrun.Invoke ();
 	}
 
-	public void NextUnit ()
+    [Command]
+    public void CmdNextUnit ()
 	{
-		var i = Units.IndexOf (activeUnit);
+        RpcnextUnit();
+    }
 
-		if (i < Units.Count () - 1)
-		{
-			activeUnit = Units [i + 1];
-		} else
-		{
-			activeUnit = Units [0];
-		}
+    [ClientRpc]
+    public void RpcnextUnit()
+    {
+        var i = Units.IndexOf(BattleAction.ActiveUnit);
 
-		StartUnitTurn ();
+        if (i < Units.Count() - 1)
+        {
+            BattleAction.ActiveUnit = Units[i + 1];
+        }
+        else
+        {
+            BattleAction.ActiveUnit = Units[0];
+        }
 
-
-	}
+        StartUnitTurn();
+    }
 
 	#region Sorting
 

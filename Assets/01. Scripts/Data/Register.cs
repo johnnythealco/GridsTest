@@ -86,7 +86,20 @@ public class Register : ScriptableObject
 
 	}
 
-	#endregion
+    public int GetActionRange(string _name)
+    {
+        int result = 0;
+
+        foreach (var action in Actions)
+        {
+            if (action.name == _name)
+                result = action.range; 
+        }
+        return result; 
+
+    }
+
+    #endregion
 
 
 

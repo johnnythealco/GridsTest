@@ -62,6 +62,7 @@ public class Weapon
 public class UnitAction
 {
 	public string name;
+    public int range;
 	public Sprite icon;
 	public TargetType targetType;
 
