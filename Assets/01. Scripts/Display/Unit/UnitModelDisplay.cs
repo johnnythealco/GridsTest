@@ -64,7 +64,7 @@ public class UnitModelDisplay : MonoBehaviour
 			{
 				var weapon = Game.Register.GetWeapon (item);
 				var weaponDsiplay = (WeaponDisplay)Instantiate (weaponDisplayPrefab);
-				weaponDsiplay.transform.SetParent (weaponsPanel);
+				weaponDsiplay.transform.SetParent (weaponsPanel, false);
 				weaponDsiplay.Prime (weapon);
 				weaponDsiplay.onClick += WeaponDsiplay_onClick;
 				weaponDisplays.Add (weaponDsiplay);
@@ -164,6 +164,7 @@ public class UnitModelDisplay : MonoBehaviour
 	{
 		unit.selectedWeapon = _weapon.name;
 		highlightSelectedWeapon ();
+        BattleAction.GetLegalTargets(_weapon.name);
 	}
 
 	void onDestroy ()

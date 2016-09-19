@@ -25,13 +25,13 @@ public class JKLog : MonoBehaviour
 	public static void Log (string _text)
 	{
 		var entry = Instantiate (JKLog.GameLog.logEnrty);
-		entry.text = _text;
+		entry.transform.SetParent (JKLog.GameLog.log, false);
+        entry.text = _text;
 
+        //entry.gameObject.transform.localScale = new Vector3(1, 1, 1);
 
-		entry.transform.SetParent (JKLog.GameLog.log);
-
-		JKLog.GameLog.scrollbar.value = 0;
-	}
+        JKLog.GameLog.scrollbar.value = 0;
+    }
 	
 
 }

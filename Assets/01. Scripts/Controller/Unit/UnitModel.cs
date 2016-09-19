@@ -107,19 +107,19 @@ public class UnitModel : MonoBehaviour
 		case DamageType.laser:
 			{
 				takeLaserDamage (weaponDamage);
-				Debug.Log (" Laser damage :" + weaponDamage.ToString ());
+				JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " +  "Laser damage :" + weaponDamage.ToString ());
 			}
 			break;
 		case DamageType.kinetic:
 			{
 				takeKineticDamage (weaponDamage);
-				Debug.Log (" Kinetic damage :" + weaponDamage.ToString ());
+                    JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " + " Kinetic damage :" + weaponDamage.ToString ());
 			}
 			break;
 		case DamageType.plasma:
 			{
 				takePlasmaDamage (weaponDamage);
-				Debug.Log (" Plasma damage :" + weaponDamage.ToString ());
+                    JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " + " Plasma damage :" + weaponDamage.ToString ());
 			}
 			break;
 		}

@@ -18,9 +18,9 @@ public class BattleAction : MonoBehaviour
 
     public static UnitModel ActiveTarget { get; set; }
 
-    public static Vector3 Destination { get; set; }
+    public static Vector3 MoveDestination { get; set; }
 
-    public static List<Vector3> Path { get; set; }
+    public static List<Vector3> MovePath { get; set; }
 
 	#endregion
 
@@ -36,32 +36,45 @@ public class BattleAction : MonoBehaviour
 	{
 		switch (_action)
 		{
-		case "MoveUnit":
+		case "Move":
 			return MoveUnit (_target);
-		case "BasicAttack":
+		case "Attack":
 			return BasicAttack ( _target, _param);
 		}
 		return false;
 	}
+    
+    public static bool DeployUnit(Unit _unit, Vector3 _position)
+    {
+        if (Game.BattleManager == null)
+            return false;
+
+        var battleManager = Game.BattleManager;
+        var BattleGrid = battleManager.BattleGrid;
+
+        var register = Game.Manager.register;
+        var unitType = register.GetUnitType(_unit.UnitType);
+
+        var unitModel = (UnitModel)Instantiate(unitType);
+        unitModel.transform.position = _position;
+        unitModel.setUnitState(_unit);
+        unitModel.selectedWeapon = unitModel.Weapons.First();
+        unitModel.selectedAction = unitModel.Actions.First();
+
+        //Register on BattelGrid
+        BattleGrid.RegisterUnit(_position, unitModel, CellContents.unit);
 
 
-	public static bool Execute (string _action, Unit _unit, Vector3 _target)
-	{
-		switch (_action)
-		{
-		case "DeployUnit":
-			return DeployUnit (_unit, _target);
-		}
+        JKLog.Log(_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString());
 
-		return false;
-	}
+        return true;
+    }
+    
+    #endregion
 
+    #region Action Network Senders
 
-	#endregion
-
-	#region Action Local Revievers
-
-	public static void Action_Click (string _action)
+    public static void Action_Click (string _action)
 	{
 		var _ActiveUnit = BattleAction.ActiveUnit;
 
@@ -70,14 +83,20 @@ public class BattleAction : MonoBehaviour
 		case "Move":
                 {
                     var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-                    var _destination = Destination;
-                    LocalPlayer.CmdBattleAction("MoveUnit", _destination, "none");
+                    var _destination = MoveDestination;
+                    LocalPlayer.CmdBattleAction("Move", _destination, "none");
                 }
                 break;
 		case "Attack":
 			{
-				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
-			}
+                    if (ActiveTarget == null)
+                        return;
+
+                    var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
+                    var _Target = ActiveTarget.transform.position;
+                    var _Weapon = ActiveUnit.selectedWeapon;
+                    LocalPlayer.CmdBattleAction("Attack", _Target, _Weapon);
+                }
 			break;
 		case "Evade":
 			{
@@ -119,6 +138,7 @@ public class BattleAction : MonoBehaviour
 
         battleManager.ClearPathSteps();
         GetLegalMoves(ActiveUnit);
+        GetLegalTargets("Attack");
 
 		return true;
 
@@ -130,9 +150,7 @@ public class BattleAction : MonoBehaviour
 		if (Game.BattleManager == null)
 			return false;
 
-		var battleManager = Game.BattleManager;
-		var BattleGrid = battleManager.BattleGrid;
-
+		var BattleGrid = Game.BattleManager.BattleGrid;
         var _target = BattleGrid.GetCell (_targetPosition).unit;
 
         var destroyed = _target.HitBy (_weapon);
@@ -147,32 +165,12 @@ public class BattleAction : MonoBehaviour
 
 		}
 
-		return true;
-	}
-
-	static bool DeployUnit (Unit _unit, Vector3 _position)
-	{
-		if (Game.BattleManager == null)
-			return false;
-
-		var battleManager = Game.BattleManager;
-		var BattleGrid = battleManager.BattleGrid;
-
-		var register = Game.Manager.register;
-		var unitType = register.GetUnitType (_unit.UnitType);
-
-		var unitModel = (UnitModel)Instantiate (unitType); 
-		unitModel.transform.position = _position;
-		unitModel.setUnitState (_unit);
-
-		//Register on BattelGrid
-		BattleGrid.RegisterUnit (_position, unitModel, CellContents.unit);
-
-
-		JKLog.Log (_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString ());
+        Game.BattleManager.ClearTarget();
 
 		return true;
 	}
+
+	
 
 	#endregion
 
@@ -234,9 +232,7 @@ public class BattleAction : MonoBehaviour
                 break;
         }
     }
-
-
-
+    
 	static List<Vector3> getEnemyTargetsInRange (UnitModel _unit, Weapon _weapon)
 	{
 		List<Vector3> result = new List<Vector3> ();
@@ -267,155 +263,5 @@ public class BattleAction : MonoBehaviour
 
 	#endregion
 
-
-	#region Action Context Getters
-
-	public static HightlightedContext GetActionContext (string _action, Vector3 _point)
-	{
-
-
-		switch (_action)
-		{
-		case "Move":
-			{
-				return GetContextForMove (_point);
-			}
-		case "Attack":
-			{
-				return GetContextForAttack (_point);
-			}
-		case "Evade":
-			{
-				return GetContextForEvade (_point);
-			}
-		case "End Turn":
-			{
-				return GetContextForEndTurn (_point);
-			}
-		}
-
-		return 0;
-	}
-
-	static HightlightedContext GetContextForMove (Vector3 _point)
-	{
-		
-		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
-
-		switch (_cell.contents)
-		{
-		case CellContents.empty:
-			{
-				if (BattleAction.LegalMoves.Contains (_point))
-					return HightlightedContext.move;
-				else
-					return HightlightedContext.nothing;
-			}
-		case CellContents.unit:
-			{
-				var _highlightedUnit = _cell.unit;
-
-				if (_highlightedUnit.faction == Game.PlayerName)
-				{
-					return HightlightedContext.unit;
-				} else
-				{
-					return HightlightedContext.enemy;
-				}
-			}
-		}
-
-		return HightlightedContext.nothing;
-	}
-
-	static HightlightedContext GetContextForAttack (Vector3 _point)
-	{
-		if (LegalTargets.Contains (_point))
-		{
-			return HightlightedContext.target;
-		} else
-		{		
-			var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
-			switch (_cell.contents)
-			{
-			case CellContents.empty:
-				{				
-					return HightlightedContext.nothing;
-				}
-			case CellContents.unit:
-				{				
-					var _highlightedUnit = _cell.unit;
-					if (_highlightedUnit.faction == Game.PlayerName)
-					{
-						return HightlightedContext.unit;
-					} else
-					{
-						return HightlightedContext.enemy;
-					}
-				}
-			}
-		}
-	
-
-		return HightlightedContext.nothing;
-		
-	}
-
-	static HightlightedContext GetContextForEvade (Vector3 _point)
-	{
-
-		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
-
-		switch (_cell.contents)
-		{
-		case CellContents.empty:
-			{
-				return HightlightedContext.nothing;
-			}
-		case CellContents.unit:
-			{
-				var _highlightedUnit = _cell.unit;
-
-				if (_highlightedUnit.faction == Game.PlayerName)
-				{
-					return HightlightedContext.unit;
-				} else
-				{
-					return HightlightedContext.enemy;
-				}
-			}
-		}
-
-		return HightlightedContext.nothing;
-	}
-
-	static HightlightedContext GetContextForEndTurn (Vector3 _point)
-	{
-
-		var _cell = Game.BattleManager.BattleGrid.GetCell (_point);
-
-		switch (_cell.contents)
-		{
-		case CellContents.empty:
-			{
-				return HightlightedContext.nothing;
-			}
-		case CellContents.unit:
-			{
-				var _highlightedUnit = _cell.unit;
-
-				if (_highlightedUnit.faction == Game.PlayerName)
-				{
-					return HightlightedContext.unit;
-				} else
-				{
-					return HightlightedContext.enemy;
-				}
-			}
-		}
-
-		return HightlightedContext.nothing;
-	}
-
-	#endregion
+    
 }

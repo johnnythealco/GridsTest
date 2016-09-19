@@ -7,7 +7,8 @@ using System.Linq;
 
 public class Turn : NetworkBehaviour
 {
-	public  List<UnitModel> Units;
+    public List<UnitModel> Units;
+    public UnitModel PlayerNextUnit;
 
     public delegate void TurnDelegate ();
 
@@ -43,24 +44,65 @@ public class Turn : NetworkBehaviour
     [Command]
     public void CmdNextUnit ()
 	{
-        RpcnextUnit();
+        RpcNextUnit();
     }
 
     [ClientRpc]
-    public void RpcnextUnit()
+    public void RpcNextUnit()
     {
         var i = Units.IndexOf(BattleAction.ActiveUnit);
 
         if (i < Units.Count() - 1)
         {
             BattleAction.ActiveUnit = Units[i + 1];
+
+            if (BattleAction.ActiveUnit.unit.Owner != Game.PlayerName)
+            {
+                GetNextUnitforLocalPlayer();
+            }
+            else
+                PlayerNextUnit = null;
+
+            StartUnitTurn();
         }
         else
         {
-            BattleAction.ActiveUnit = Units[0];
+            StartTurn();
         }
 
-        StartUnitTurn();
+        
+    }
+
+    void GetNextUnitforLocalPlayer()
+    {
+        var indexofActiveUnit = Units.IndexOf(BattleAction.ActiveUnit);
+
+        int unitsRemaining = indexofActiveUnit - Units.Count() + 1;
+
+        for (int i = 1;i < unitsRemaining; i++ )
+        {
+            int index = indexofActiveUnit + i;
+            var _unit = Units[index];
+
+            if (_unit.unit.Owner == Game.PlayerName)
+            {
+                PlayerNextUnit = _unit;
+                return;
+            }
+        }
+
+        for (int i = 0; i < indexofActiveUnit; i++)
+        {
+            int index = i;
+            var _unit = Units[index];
+
+            if (_unit.unit.Owner == Game.PlayerName)
+            {
+                PlayerNextUnit = _unit;
+                return;
+            }
+        }
+
     }
 
 	#region Sorting

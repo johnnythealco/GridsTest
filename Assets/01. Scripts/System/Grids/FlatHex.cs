@@ -328,8 +328,17 @@ namespace JK
                 foreach (var _unit in _unitsInRange)
                 {
                     var _path = Map.GetLine(sourceGridPoint, _unit);
+                    _path.Remove(_unit);
+                    _path.Remove(Map[_Source]);
 
-                    foreach(var step in _path)
+                    if (_path.Count() == 0)
+                    {
+                        validTargets.Add(Grid[_unit].transform.position);
+                        return validTargets;
+                    }
+
+
+                    foreach (var step in _path)
                     {
                         //if the path is blocked break out of the loop and go to check next unit;
                         if (Grid[step].isAccessible == false)
@@ -338,6 +347,7 @@ namespace JK
                         validTargets.Add(Grid[_unit].transform.position);
                     }
                 }
+                
                 
                 return validTargets;
 

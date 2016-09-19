@@ -13,8 +13,6 @@ public class Battle : MonoBehaviour
 	public DeploymentManager deploymentManager;
 	public UnitModelDisplay unitDisplay;
 	public CameraCTRL cameraCTRL;
-	public JKLog gameLog;
-
 
 	public FlatHex BattleGrid{ get; set; }
 
@@ -24,16 +22,14 @@ public class Battle : MonoBehaviour
 
 	public static List<UnitModel> AllUnits{ get; set; }
 
+    public static bool LocalPlayerTurn { get; set; }
+
 
 	SpriteRenderer gridCursor;
 	SpriteRenderer selectedUnitCursor;
     SpriteRenderer selectedTargetCursor;
     List<SpriteRenderer> PathSteps = new List<SpriteRenderer>();
-
-	public List<Vector3> line = new List<Vector3> ();
-
-
-	#endregion
+    #endregion
 
 	#region Start & Update
 
@@ -49,11 +45,7 @@ public class Battle : MonoBehaviour
 
 		Battle.TurnManager.onUnitStartTrun += OnUnitStartTrun;
 		Battle.TurnManager.onUnitEndTrun += OnUnitEndTrun;
-
-
-		gameLog.gameObject.SetActive (true);
-
-
+        
 		gridCursor = Instantiate (cellBorder) as SpriteRenderer;
 	    selectedUnitCursor = Instantiate (cellBorder) as SpriteRenderer;
         selectedTargetCursor = Instantiate(cellBorder) as SpriteRenderer;
@@ -71,23 +63,7 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onRightClickCell (Vector3 _point)
 	{
-		//foreach (var p in line)
-		//{
-		//	var cell = BattleGrid.GetCell (p);
-		//	cell.Color = Color.white;
-		//}
 
-		//line.Clear ();
-
-		//var start = TurnManager.activeUnit.transform.position;
-
-		//line = BattleGrid.GetLine (start, _point);
-
-		//foreach (var p in line)
-		//{
-		//	var cell = BattleGrid.GetCell (p);
-		//	cell.Color = Color.cyan;
-		//}
 
 	}
 
@@ -118,23 +94,42 @@ public class Battle : MonoBehaviour
 
         if (BattleAction.LegalMoves.Contains(_point))
         {
-            BattleAction.Destination = _point;
+            BattleAction.MoveDestination = _point;
             highlightMovePath();
-            return;
+
+            if (BattleAction.ActiveUnit.selectedAction == "Attack")
+                BattleAction.ActiveUnit.selectedAction = ("Move");
+                return;
         }
 
-        //if(BattleAction.LegalTargets.Contains(_point))
-        //{
 
-        //}
-
-        if(!BattleAction.LegalMoves.Contains(_point))
+        if (BattleAction.LegalTargets.Contains(_point))
         {
-            BattleAction.Destination = BattleAction.ActiveUnit.transform.position;
-            if (PathSteps.Count() > 0)
-                ClearPathSteps();
+            if(BattleAction.ActiveUnit.selectedAction == "Move")            
+                BattleAction.ActiveUnit.selectedAction = ("Attack");
+            
+            unitDisplay.Prime(BattleAction.ActiveUnit);
+            BattleAction.ActiveTarget = BattleGrid.GetCell(_point).unit;
+            selectedTargetCursor.transform.position = _point;
+            selectedTargetCursor.gameObject.SetActive(true);
+            selectedTargetCursor.color = Color.red;
         }
 
+        if (!BattleAction.LegalMoves.Contains(_point))
+        {
+            BattleAction.MoveDestination = BattleAction.ActiveUnit.transform.position;
+            if (PathSteps.Count() > 0)
+                ClearPathSteps();         
+        }
+
+        if(BattleAction.ActiveTarget != null && _point != BattleAction.ActiveTarget.transform.position)
+        {
+            ClearTarget();
+        }
+
+
+
+       
 
 
 
@@ -146,13 +141,13 @@ public class Battle : MonoBehaviour
 		gridCursor.gameObject.SetActive (false);
 
 	}
-
-	
+    	
 	void OnUnitStartTrun ()
 	{
         var _point = BattleAction.ActiveUnit.transform.position;
 
         BattleAction.GetLegalMoves(BattleAction.ActiveUnit);
+        BattleAction.GetLegalTargets("Attack");
 
         unitDisplay.Prime(BattleAction.ActiveUnit);
         unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
@@ -183,9 +178,7 @@ public class Battle : MonoBehaviour
 
 	
 	}
-
-
-
+    
 	#endregion
 
 
@@ -210,9 +203,9 @@ public class Battle : MonoBehaviour
 
 	void highlightTarget (Vector3 _point)
 	{
-		gridCursor.transform.position = _point;
+        gridCursor.transform.position = _point;
         gridCursor.gameObject.SetActive(true);
-		gridCursor.color = Color.red;
+        gridCursor.color = Color.red;
 	}
 
 	void highlightEnemy (Vector3 _point)
@@ -237,10 +230,10 @@ public class Battle : MonoBehaviour
             return;
 
         var start = BattleAction.ActiveUnit.transform.position;
-        var end = BattleAction.Destination;
-        BattleAction.Path = BattleGrid.getGridPath(start, end);
+        var end = BattleAction.MoveDestination;
+        BattleAction.MovePath = BattleGrid.getGridPath(start, end);
 
-        foreach(var step in BattleAction.Path)
+        foreach(var step in BattleAction.MovePath)
         {
             var stepCursor = Instantiate(cellBorder) as SpriteRenderer;
             stepCursor.color = Color.green;
@@ -265,13 +258,19 @@ public class Battle : MonoBehaviour
 
     }
 
+    public void ClearTarget()
+    {
+        selectedTargetCursor.gameObject.SetActive(false);
+        BattleAction.ActiveTarget = null;
+    }
 
-	#endregion
+
+    #endregion
 
 
-	#region Utility Functions
+    #region Utility Functions
 
-	public List<UnitModel> GetUnitsFromPositions (List<Vector3> _positions)
+    public List<UnitModel> GetUnitsFromPositions (List<Vector3> _positions)
 	{
 		var result = new List<UnitModel> ();
 

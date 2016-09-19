@@ -11,12 +11,6 @@ public class JKTesting : MonoBehaviour
 	System.Random rnd = new System.Random ();
 
 
-	void Start ()
-	{
-
-	}
-
-
 	void Update ()
 	{
 
@@ -32,6 +26,11 @@ public class JKTesting : MonoBehaviour
 		{
 			Game.BattleManager.StartBattle ();
 		}
+
+        if(Input.GetKeyDown(KeyCode.L))
+        {
+            JKLog.Log(" Testing Log Entry !");
+        }
 	
 	}
 
@@ -52,11 +51,9 @@ public class JKTesting : MonoBehaviour
 
 	void netWorkDeploy (Unit _unit, Vector3 _position)
 	{
-		string type = "DeployUnit";
-		var _param1 = JsonUtility.ToJson (_unit);
-		var _param2 = JsonUtility.ToJson (_position);
+		var _unitJSON = JsonUtility.ToJson (_unit);		
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
-		LocalPlayer.CmdBattleCommand (type, _param1, _param2);
+		LocalPlayer.CmdDeploy (_unitJSON, _position);
 	}
 
 

@@ -3,11 +3,7 @@ using System.Collections;
 using UnityEngine.Networking;
 
 public class ClientInput :  NetworkBehaviour
-{
-	[SyncVar]
-	public string battlePhase = "Waiting to Start";
-
-
+{	
 	NetManager NetMgr;
 	JKTesting jktesting;
 
@@ -32,7 +28,6 @@ public class ClientInput :  NetworkBehaviour
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-//				Debug.Log (Game.PlayerName + " is connected on Network ID " + this.netId);
 		}
 
 		if (!hasAuthority)
@@ -60,57 +55,26 @@ public class ClientInput :  NetworkBehaviour
 	#endregion
 
 
-	[Command]
-	public void CmdBattlePhase (string _phase)
+
+    #region Battle Actions
+
+    #region Deploy
+    [Command]
+	public void CmdDeploy (string _Unit, Vector3 _position)
 	{
-		this.battlePhase = _phase;
-	}
-
-
-
-	//	[Command]
-	//	public void CmdUpdateState (string _param1, string _param2)
-	//	{
-	//		var _netID = this.netId;
-	//		RpcBattleRpc (_netID, _param1, _param2);
-	//	}
-	//
-	//	[ClientRpc]
-	//	public void RpcUpdateState (int _netID, string _param1, string _param2)
-	//	{
-	//
-	//
-	//
-	//	}
-	//
-
-	#region Battle Actions
-
-	[Command]
-	public void CmdBattleCommand (string _type, string _param1, string _param2)
-	{
-		RpcBattleRpc (_type, _param1, _param2);
+		RpcDeploy (_Unit, _position);
 	}
 
 	[ClientRpc]
-	public void RpcBattleRpc (string _type, string _param1, string _param2)
-	{
-		switch (_type)
-		{
-		case "DeployUnit":
-			{
+	public void RpcDeploy (string _param1, Vector3 _position)
+	{	
 				var _unit = JsonUtility.FromJson<Unit> (_param1);
-				var _position = JsonUtility.FromJson<Vector3> (_param2); 
-				BattleAction.Execute ("DeployUnit", _unit, _position);
-			}
-			break;
-		}
-
+				BattleAction.DeployUnit ( _unit, _position);
 	}
+    #endregion
 
 
-
-	[Command]
+    [Command]
 	public void CmdBattleAction (string _type, Vector3 _target, string _param)
 	{
 		RpcBattleAction (_type, _target, _param);
@@ -119,22 +83,8 @@ public class ClientInput :  NetworkBehaviour
 	[ClientRpc]
 	public void RpcBattleAction (string _type, Vector3 _target, string _param)
 	{
-		switch (_type)
-		{
-
-		case "MoveUnit":
-			{
-				BattleAction.Execute ("MoveUnit", _target, _param);
-			}
-			break;
-		case "BasicAttack":
-			{
-				BattleAction.Execute ("BasicAttack", _target, _param);
-			}
-			break;
-
-
-		}
+        BattleAction.Execute(_type, _target, _param);
+        
 
 	}
 
