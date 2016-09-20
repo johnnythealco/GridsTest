@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 
 [System.Serializable]
-public class UnitModel : MonoBehaviour
+public class Unit : MonoBehaviour
 {
 	#region Variables
 
-	public Unit unit;
+	public UnitState state;
 	public Sprite Icon;
 	public string DsiplayName;
 
@@ -38,9 +38,9 @@ public class UnitModel : MonoBehaviour
 
 	#region Getters & Setters
 
-	public string faction{ get { return unit.Owner; } }
+	public string faction{ get { return state.Owner; } }
 
-	public int currentMovement{ get { return unit.engines; } }
+	public int currentMovement{ get { return state.engines; } }
 
 	public int currentAttackRange {
 		get { 
@@ -49,17 +49,17 @@ public class UnitModel : MonoBehaviour
 		}
 	}
 
-	public int currentArmour{ get { return unit.armour; }}
+	public int currentArmour{ get { return state.armour; }}
 
 
     public TargetType targetType
     {
         get
         {
-            if (this == BattleAction.ActiveUnit && this.unit.Owner == Game.PlayerName)
+            if (this == BattleAction.ActiveUnit && this.state.Owner == Game.PlayerName)
                 return TargetType.self;
 
-            if (this.unit.Owner == Game.PlayerName)
+            if (this.state.Owner == Game.PlayerName)
             {
                 return TargetType.ally;
             }
@@ -71,9 +71,9 @@ public class UnitModel : MonoBehaviour
     }
 
 
-    public void setUnitState (Unit _unit)
+    public void setUnitState (UnitState _unit)
 	{
-		this.unit = _unit;
+		this.state = _unit;
 	}
 
 
@@ -85,7 +85,7 @@ public class UnitModel : MonoBehaviour
 	public bool AttackWith (string _weapon, string _subSystem)
 	{
 		var weapon = Game.Register.GetWeapon (_weapon);
-		if (weapon.accuracy >= this.unit.evasion)
+		if (weapon.accuracy >= this.state.evasion)
 		{
 			return true;
 		}
@@ -107,24 +107,24 @@ public class UnitModel : MonoBehaviour
 		case DamageType.laser:
 			{
 				takeLaserDamage (weaponDamage);
-				JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " +  "Laser damage :" + weaponDamage.ToString ());
+				JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " +  "Laser damage :" + weaponDamage.ToString ());
 			}
 			break;
 		case DamageType.kinetic:
 			{
 				takeKineticDamage (weaponDamage);
-                    JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " + " Kinetic damage :" + weaponDamage.ToString ());
+                    JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " + " Kinetic damage :" + weaponDamage.ToString ());
 			}
 			break;
 		case DamageType.plasma:
 			{
 				takePlasmaDamage (weaponDamage);
-                    JKLog.Log (this.DsiplayName + "(" + this.unit.Owner + ") " + " Plasma damage :" + weaponDamage.ToString ());
+                    JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " + " Plasma damage :" + weaponDamage.ToString ());
 			}
 			break;
 		}
 
-		if (unit.armour <= 0)
+		if (state.armour <= 0)
 		{
 			return true;
 		}
@@ -140,9 +140,9 @@ public class UnitModel : MonoBehaviour
 	void takeLaserDamage (int _damage)
 	{
 
-		var sheilds = unit.sheilds;
+		var sheilds = state.sheilds;
 
-		var armourType = unit.armourType; 
+		var armourType = state.armourType; 
 		
 		if (sheilds > 0)
 		{
@@ -159,19 +159,19 @@ public class UnitModel : MonoBehaviour
 				case ArmourType.light:
 					{
 						if ((extraDamage - 1) > 0)
-							unit.armour = unit.armour - (extraDamage - 1);
+							state.armour = state.armour - (extraDamage - 1);
 					}
 					break;
 				case ArmourType.medium:
 					{
 						if ((extraDamage - 10) > 0)
-							unit.armour = unit.armour - (extraDamage - 10);
+							state.armour = state.armour - (extraDamage - 10);
 					}
 					break;
 				case ArmourType.heavy:
 					{
 						if ((extraDamage - 100) > 0)
-							unit.armour = unit.armour - (extraDamage - 100);
+							state.armour = state.armour - (extraDamage - 100);
 					}
 					break;
 
@@ -186,19 +186,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						unit.armour = unit.armour - (_damage - 1);
+						state.armour = state.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						unit.armour = unit.armour - (_damage - 10);
+						state.armour = state.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						unit.armour = unit.armour - (_damage - 100);
+						state.armour = state.armour - (_damage - 100);
 				}
 				break;
 
@@ -209,9 +209,9 @@ public class UnitModel : MonoBehaviour
 	void takeKineticDamage (int _damage)
 	{
 
-		var sheilds = unit.sheilds;
+		var sheilds = state.sheilds;
 
-		var armourType = unit.armourType; 
+		var armourType = state.armourType; 
 
 		if (sheilds > 0)
 		{
@@ -227,19 +227,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						unit.armour = unit.armour - (_damage - 1);
+						state.armour = state.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						unit.armour = unit.armour - (_damage - 10);
+						state.armour = state.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						unit.armour = unit.armour - (_damage - 100);
+						state.armour = state.armour - (_damage - 100);
 				}
 				break;
 
@@ -251,9 +251,9 @@ public class UnitModel : MonoBehaviour
 	void takePlasmaDamage (int _damage)
 	{
 
-		var sheilds = unit.sheilds;
+		var sheilds = state.sheilds;
 
-		var armourType = unit.armourType; 
+		var armourType = state.armourType; 
 
 		if (sheilds > 0)
 		{
@@ -269,19 +269,19 @@ public class UnitModel : MonoBehaviour
 			case ArmourType.light:
 				{
 					if ((_damage - 1) > 0)
-						unit.armour = unit.armour - (_damage - 1);
+						state.armour = state.armour - (_damage - 1);
 				}
 				break;
 			case ArmourType.medium:
 				{
 					if ((_damage - 10) > 0)
-						unit.armour = unit.armour - (_damage - 10);
+						state.armour = state.armour - (_damage - 10);
 				}
 				break;
 			case ArmourType.heavy:
 				{
 					if ((_damage - 100) > 0)
-						unit.armour = unit.armour - (_damage - 100);
+						state.armour = state.armour - (_damage - 100);
 				}
 				break;
 

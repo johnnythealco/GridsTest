@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 [System.Serializable]
-public class Unit
+public class UnitState
 {
 	public Vector3 Position{ get; set; }
 
@@ -27,7 +27,7 @@ public class Unit
 	public List<string> actions;
 
 
-	public Unit (UnitModel _type, string _faction)
+	public UnitState (Unit _type, string _faction)
 	{
 		this.Owner = _faction;
 		this.UnitType = _type.DsiplayName;

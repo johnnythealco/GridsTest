@@ -16,6 +16,8 @@ public class Game : MonoBehaviour
 
 	public static List<Vector3> GridPoints{ get; set; }
 
+    public List<ClientInput> Players = new List<ClientInput>();
+
 	void Awake ()
 	{
 		if (Manager == null)

@@ -15,11 +15,9 @@ public class JKTesting : MonoBehaviour
 	{
 
 
-		if (Input.GetKeyDown (KeyCode.D))
+		if (Input.GetKeyDown (KeyCode.E))
 		{
-			var _SortedList = Battle.TurnManager.Units;
-
-			DisplayList (_SortedList);
+            Battle.TurnManager.CmdNextUnit();
 		}
 
 		if (Input.GetKeyDown (KeyCode.Space))
@@ -34,14 +32,14 @@ public class JKTesting : MonoBehaviour
 	
 	}
 
-	List<Unit> CreateUnits (List<string> _UnitTypes, string _Owner)
+	List<UnitState> CreateUnits (List<string> _UnitTypes, string _Owner)
 	{
-		var result = new List<Unit> ();
+		var result = new List<UnitState> ();
 		foreach (var _unit in _UnitTypes)
 		{
 			var newUnitType = Game.Manager.register.GetUnitType (_unit);
 
-			var newUnit = new Unit (newUnitType, _Owner);
+			var newUnit = new UnitState (newUnitType, _Owner);
 
 			result.Add (newUnit);
 		}
@@ -49,7 +47,7 @@ public class JKTesting : MonoBehaviour
 	}
 
 
-	void netWorkDeploy (Unit _unit, Vector3 _position)
+	void netWorkDeploy (UnitState _unit, Vector3 _position)
 	{
 		var _unitJSON = JsonUtility.ToJson (_unit);		
 		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
@@ -74,24 +72,24 @@ public class JKTesting : MonoBehaviour
 			netWorkDeploy (_unit, _point);
 		}
 
-		var _EnemyFleet = CreateUnits (EnemyFleet, "Enemy"); 
-		foreach (var _unit in _EnemyFleet)
-		{
-			var i = rnd.Next (Game.GridPoints.Count ());
-			var _point = Game.GridPoints [i];
-			while (Game.BattleManager.BattleGrid.GetCellAccessiblity (_point) == false)
-			{
-				i = rnd.Next (Game.GridPoints.Count ());
-				_point = Game.GridPoints [i];
-			}
+		//var _EnemyFleet = CreateUnits (EnemyFleet, "Enemy"); 
+		//foreach (var _unit in _EnemyFleet)
+		//{
+		//	var i = rnd.Next (Game.GridPoints.Count ());
+		//	var _point = Game.GridPoints [i];
+		//	while (Game.BattleManager.BattleGrid.GetCellAccessiblity (_point) == false)
+		//	{
+		//		i = rnd.Next (Game.GridPoints.Count ());
+		//		_point = Game.GridPoints [i];
+		//	}
 
-			netWorkDeploy (_unit, _point);
-		}
+		//	netWorkDeploy (_unit, _point);
+		//}
 	}
 
 
 
-	void DisplayList (List<UnitModel> _Units)
+	void DisplayList (List<Unit> _Units)
 	{
 		foreach (var _unit in _Units)
 		{

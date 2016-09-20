@@ -27,7 +27,7 @@ namespace JK
 
 			public List<BattleCellState> State;
 
-			public List<UnitModel> units;
+			public List<Unit> units;
 
 			#region Delegates & Events
 
@@ -51,7 +51,7 @@ namespace JK
 			public void BuildGrid ()
 			{
 				Game.GridPoints = new List<Vector3> ();
-				Battle.AllUnits = new List<UnitModel> ();
+				Battle.AllUnits = new List<Unit> ();
 				size = 12;
 				padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
@@ -257,7 +257,7 @@ namespace JK
 				return cell.isAccessible;
 			}
 
-			public void RegisterUnit (Vector3 _point, UnitModel _unit, CellContents _contents)
+			public void RegisterUnit (Vector3 _point, Unit _unit, CellContents _contents)
 			{
 				var cell = Grid [Map [_point]];
 				cell.unit = _unit;

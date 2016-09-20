@@ -18,7 +18,7 @@ public class UnitModelDisplay : MonoBehaviour
 	public Transform weaponsPanel;
 	public WeaponDisplay weaponDisplayPrefab;
 
-	UnitModel unit;
+	Unit unit;
 	List<WeaponDisplay> weaponDisplays = new List<WeaponDisplay> ();
 
 	#region Delegates & Events
@@ -30,7 +30,7 @@ public class UnitModelDisplay : MonoBehaviour
 	#endregion
 
 
-	public void Prime (UnitModel _unitModel)
+	public void Prime (Unit _unitModel)
 	{
 		unit = _unitModel;
 		clearWeaponDisplays ();
@@ -124,29 +124,6 @@ public class UnitModelDisplay : MonoBehaviour
 			onChangeAction.Invoke ();
 	}
 
-	public void SetAction (TargetType _targetType)
-	{
-
-		foreach (var _action in unit.Actions)
-		{
-			if (Game.Register.GetActionTargetType (_action) == _targetType)
-			{
-				unit.selectedAction = _action;
-				var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
-
-				if (Action != null)
-					Action.text = unit.selectedAction;
-				if (ActionIcon != null)
-					ActionIcon.sprite = _selectedActionIcon;
-				if (onChangeAction != null)
-					onChangeAction.Invoke ();
-				return;
-			}
-				
-		}
-	}
-
-
 	void highlightSelectedWeapon ()
 	{
 		foreach (var item in weaponDisplays)
@@ -185,30 +162,6 @@ public class UnitModelDisplay : MonoBehaviour
 		}
 
 		weaponDisplays.Clear ();
-
-	}
-
-	public void HighlightAction ()
-	{
-		if (Action != null)
-			Action.fontStyle = FontStyle.Bold;
-	}
-
-	public void UnHighlightAction ()
-	{
-		if (Action != null)
-			Action.fontStyle = FontStyle.Normal;
-	}
-
-	public void Action_Click ()
-	{
-		var _selectedAction = unit.selectedAction;
-
-		if (_selectedAction != null || _selectedAction != "")
-		{
-			BattleAction.Action_Click (_selectedAction);
-		}
-
 
 	}
 

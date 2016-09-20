@@ -6,37 +6,51 @@ using System.Linq;
 
 public class Battle : MonoBehaviour
 {
-	#region Variables
+    #region Variables
 
-	public FlatHex flatHexPrefab;
+    #region public
+    public FlatHex flatHexPrefab;
 	public SpriteRenderer cellBorder;
-	public DeploymentManager deploymentManager;
 	public UnitModelDisplay unitDisplay;
 	public CameraCTRL cameraCTRL;
+    public Turn turnManager;
+    #endregion
 
-	public FlatHex BattleGrid{ get; set; }
+    #region Properties
+
+    public FlatHex BattleGrid{ get; set; }
 
 	public static Turn TurnManager{ get; set; }
 
-	public static UnitModel SelectedUnit{ get; set; }
+	public static Unit SelectedUnit{ get; set; }
 
-	public static List<UnitModel> AllUnits{ get; set; }
+	public static List<Unit> AllUnits{ get; set; }
 
     public static bool LocalPlayerTurn { get; set; }
+    #endregion
 
+    #region private
 
-	SpriteRenderer gridCursor;
+    SpriteRenderer gridCursor;
 	SpriteRenderer selectedUnitCursor;
     SpriteRenderer selectedTargetCursor;
     List<SpriteRenderer> PathSteps = new List<SpriteRenderer>();
     #endregion
 
-	#region Start & Update
+    #endregion
+
+    #region Start & Update
+
+    void Awake()
+    {
+        TurnManager = turnManager;
+         
+    }
 
 	void Start ()
 	{
-		Game.BattleManager = this;
-		BattleGrid = Instantiate (flatHexPrefab) as FlatHex;
+        Game.BattleManager = this;
+        BattleGrid = Instantiate (flatHexPrefab) as FlatHex;
 		BattleGrid.BuildGrid ();
 		BattleGrid.onClickCell += BattleGrid_onClickCell;
 		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
@@ -55,9 +69,7 @@ public class Battle : MonoBehaviour
 
     }
 
-
-
-	#endregion
+    #endregion
 
 	#region Event handlers
 
@@ -89,6 +101,9 @@ public class Battle : MonoBehaviour
 
 	void BattleGrid_onClickCell (Vector3 _point)
 	{
+        if (!LocalPlayerTurn)
+            return;
+
         if (BattleAction.LegalMoves == null)
             return;
 
@@ -144,19 +159,30 @@ public class Battle : MonoBehaviour
     	
 	void OnUnitStartTrun ()
 	{
-        var _point = BattleAction.ActiveUnit.transform.position;
+        if (LocalPlayerTurn)
+        {
 
-        BattleAction.GetLegalMoves(BattleAction.ActiveUnit);
-        BattleAction.GetLegalTargets("Attack");
+            var _point = BattleAction.ActiveUnit.transform.position;
 
-        unitDisplay.Prime(BattleAction.ActiveUnit);
-        unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
-        selectedUnitCursor.gameObject.SetActive(true);
-        selectedUnitCursor.color = Color.blue;
-        selectedUnitCursor.transform.position = _point;
-        selectedUnitCursor.transform.SetParent(BattleAction.ActiveUnit.transform);
+            BattleAction.GetLegalMoves(BattleAction.ActiveUnit);
+            BattleAction.GetLegalTargets("Attack");
 
-        cameraCTRL.CentreOn (_point); 
+            unitDisplay.Prime(BattleAction.ActiveUnit);
+            unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
+            selectedUnitCursor.gameObject.SetActive(true);
+            selectedUnitCursor.color = Color.blue;
+            selectedUnitCursor.transform.position = _point;
+            selectedUnitCursor.transform.SetParent(BattleAction.ActiveUnit.transform);
+            cameraCTRL.CentreOn(_point);
+        }
+        else
+        {
+            var _point = BattleAction.NextUnit.transform.position;
+            unitDisplay.Prime(BattleAction.NextUnit);
+            cameraCTRL.CentreOn(_point);
+        }
+
+       
     }
 
 	void OnUnitEndTrun ()
@@ -178,14 +204,29 @@ public class Battle : MonoBehaviour
 
 	
 	}
-    
-	#endregion
+
+    public void Action_Click()
+    {
+        if (!LocalPlayerTurn)
+            return;
+
+        var _selectedAction = BattleAction.ActiveUnit.selectedAction;
+
+        if (_selectedAction != null || _selectedAction != "")
+        {
+            BattleAction.Action_Click(_selectedAction);
+        }
+
+
+    }
+
+    #endregion
 
 
 
-	#region Highlighting
+    #region Highlighting
 
-	void highlightEmptyCell (Vector3 _point)
+    void highlightEmptyCell (Vector3 _point)
 	{
 		gridCursor.color = Color.gray;
 		gridCursor.transform.position = _point;
@@ -270,9 +311,9 @@ public class Battle : MonoBehaviour
 
     #region Utility Functions
 
-    public List<UnitModel> GetUnitsFromPositions (List<Vector3> _positions)
+    public List<Unit> GetUnitsFromPositions (List<Vector3> _positions)
 	{
-		var result = new List<UnitModel> ();
+		var result = new List<Unit> ();
 
 		foreach (var _position in _positions)
 		{
@@ -288,7 +329,7 @@ public class Battle : MonoBehaviour
 
 	}
 
-	public List<Vector3> GetUnitPositions (List<UnitModel> _Units)
+	public List<Vector3> GetUnitPositions (List<Unit> _Units)
 	{
 		var result = new List<Vector3> ();
 

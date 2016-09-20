@@ -15,7 +15,7 @@ namespace JK
 			public bool isBlocking = false;
 			public float Cost = 1;
 			public CellContents contents;
-			public UnitModel unit;
+			public Unit unit;
 		}
 	}
 }

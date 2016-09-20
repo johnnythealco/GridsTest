@@ -7,8 +7,7 @@ using System.Linq;
 
 public class Turn : NetworkBehaviour
 {
-    public List<UnitModel> Units;
-    public UnitModel PlayerNextUnit;
+    public List<Unit> TurnOrder = new List<Unit>();   
 
     public delegate void TurnDelegate ();
 
@@ -16,16 +15,22 @@ public class Turn : NetworkBehaviour
 	public event TurnDelegate onUnitEndTrun;
 
 
-	void Awake ()
-	{
-		Battle.TurnManager = this;
-		Units = new List<UnitModel> ();
-	}
-
 	public void StartTurn ()
 	{
-        BattleAction.ActiveUnit = Units [0];
-		StartUnitTurn ();
+        BattleAction.ActiveUnit = TurnOrder [0];
+
+        if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
+        {
+            GetNextUnitforLocalPlayer();
+            Battle.LocalPlayerTurn = false;
+        }
+        else
+        {
+            BattleAction.NextUnit = null;
+            Battle.LocalPlayerTurn = true;
+        }
+
+        StartUnitTurn ();
 	}
 
 	public void StartUnitTurn ()
@@ -50,18 +55,22 @@ public class Turn : NetworkBehaviour
     [ClientRpc]
     public void RpcNextUnit()
     {
-        var i = Units.IndexOf(BattleAction.ActiveUnit);
+        var i = TurnOrder.IndexOf(BattleAction.ActiveUnit);
 
-        if (i < Units.Count() - 1)
+        if (i < TurnOrder.Count() - 1)
         {
-            BattleAction.ActiveUnit = Units[i + 1];
+            BattleAction.ActiveUnit = TurnOrder[i + 1];
 
-            if (BattleAction.ActiveUnit.unit.Owner != Game.PlayerName)
+            if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
             {
                 GetNextUnitforLocalPlayer();
+                Battle.LocalPlayerTurn = false;
             }
             else
-                PlayerNextUnit = null;
+            {
+                BattleAction.NextUnit = null;
+                Battle.LocalPlayerTurn = true;
+            }
 
             StartUnitTurn();
         }
@@ -75,18 +84,18 @@ public class Turn : NetworkBehaviour
 
     void GetNextUnitforLocalPlayer()
     {
-        var indexofActiveUnit = Units.IndexOf(BattleAction.ActiveUnit);
+        var indexofActiveUnit = TurnOrder.IndexOf(BattleAction.ActiveUnit);
 
-        int unitsRemaining = indexofActiveUnit - Units.Count() + 1;
+        int unitsRemaining = indexofActiveUnit - TurnOrder.Count() + 1;
 
         for (int i = 1;i < unitsRemaining; i++ )
         {
             int index = indexofActiveUnit + i;
-            var _unit = Units[index];
+            var _unit = TurnOrder[index];
 
-            if (_unit.unit.Owner == Game.PlayerName)
+            if (_unit.state.Owner == Game.PlayerName)
             {
-                PlayerNextUnit = _unit;
+                BattleAction.NextUnit = _unit;
                 return;
             }
         }
@@ -94,11 +103,11 @@ public class Turn : NetworkBehaviour
         for (int i = 0; i < indexofActiveUnit; i++)
         {
             int index = i;
-            var _unit = Units[index];
+            var _unit = TurnOrder[index];
 
-            if (_unit.unit.Owner == Game.PlayerName)
+            if (_unit.state.Owner == Game.PlayerName)
             {
-                PlayerNextUnit = _unit;
+                BattleAction.NextUnit = _unit;
                 return;
             }
         }
@@ -110,12 +119,12 @@ public class Turn : NetworkBehaviour
 	[Command]
 	public  void CmdSortList ()
 	{
-		Units.Clear ();
-		Units.AddRange (Battle.AllUnits);
-		SortUnits_Speed (Units, 0, Units.Count () - 1);  
+		TurnOrder.Clear ();
+		TurnOrder.AddRange (Battle.AllUnits);
+		SortUnits_Speed (TurnOrder, 0, TurnOrder.Count () - 1);  
 
 		var turnList = new TurnList ();
-		turnList.positions = Game.BattleManager.GetUnitPositions (Units); 
+		turnList.positions = Game.BattleManager.GetUnitPositions (TurnOrder); 
 		var JSON = JsonUtility.ToJson (turnList);
 
 		RpcUpdateTurnOrder (JSON);
@@ -127,16 +136,16 @@ public class Turn : NetworkBehaviour
 		var turnlist = (TurnList)JsonUtility.FromJson<TurnList> (_UnitPostions);
 
 
-		Units = Game.BattleManager.GetUnitsFromPositions (turnlist.positions);
+		TurnOrder = Game.BattleManager.GetUnitsFromPositions (turnlist.positions);
 		Battle.TurnManager.StartTurn ();
 
 
 	}
 
 
-	int Partition_Speed (List<UnitModel> list, int left, int right)
+	int Partition_Speed (List<Unit> list, int left, int right)
 	{
-		UnitModel pivot = list [left];
+		Unit pivot = list [left];
 
 		while (true)
 		{
@@ -151,7 +160,7 @@ public class Turn : NetworkBehaviour
 
 			if (left < right)
 			{
-				UnitModel temp = list [left];
+				Unit temp = list [left];
 				list [left] = list [right];
 				list [right] = temp;
 			} else
@@ -161,7 +170,7 @@ public class Turn : NetworkBehaviour
 		}
 	}
 
-	void SortUnits_Speed (List<UnitModel> list, int left, int right)
+	void SortUnits_Speed (List<Unit> list, int left, int right)
 	{
 		if (left < right)
 		{

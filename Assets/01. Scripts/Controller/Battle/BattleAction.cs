@@ -8,7 +8,7 @@ public class BattleAction : MonoBehaviour
 {
     #region Properties
 
-    public static UnitModel ActiveUnit { get; set; }
+    public static Unit ActiveUnit { get; set; }
 
     public static List<Vector3> LegalMoves{ get; set; }
 
@@ -16,17 +16,19 @@ public class BattleAction : MonoBehaviour
 
 	public static TargetType CurrentTargetType{ get; set; }
 
-    public static UnitModel ActiveTarget { get; set; }
+    public static Unit ActiveTarget { get; set; }
 
     public static Vector3 MoveDestination { get; set; }
 
     public static List<Vector3> MovePath { get; set; }
 
-	#endregion
+    public static Unit NextUnit;
 
-	#region Action Execution Network Recievers
+    #endregion
 
-	public static void StartBattle ()
+    #region Action Execution Network Recievers
+
+    public static void StartBattle ()
 	{ 
 		var jktesting = GameObject.Find ("! JKTESTING !").GetComponent<JKTesting> (); 
 		jktesting.QuickDeploy ();
@@ -44,7 +46,7 @@ public class BattleAction : MonoBehaviour
 		return false;
 	}
     
-    public static bool DeployUnit(Unit _unit, Vector3 _position)
+    public static bool DeployUnit(UnitState _unit, Vector3 _position)
     {
         if (Game.BattleManager == null)
             return false;
@@ -55,7 +57,7 @@ public class BattleAction : MonoBehaviour
         var register = Game.Manager.register;
         var unitType = register.GetUnitType(_unit.UnitType);
 
-        var unitModel = (UnitModel)Instantiate(unitType);
+        var unitModel = (Unit)Instantiate(unitType);
         unitModel.transform.position = _position;
         unitModel.setUnitState(_unit);
         unitModel.selectedWeapon = unitModel.Weapons.First();
@@ -177,7 +179,7 @@ public class BattleAction : MonoBehaviour
 
 	#region Range and Target Methods
 
-	public static void GetLegalMoves (UnitModel _unit)
+	public static void GetLegalMoves (Unit _unit)
 	{
 		BattleAction.LegalMoves = Game.BattleManager.BattleGrid.GetRange (_unit.transform.position, _unit.Engines); 
 
@@ -233,7 +235,7 @@ public class BattleAction : MonoBehaviour
         }
     }
     
-	static List<Vector3> getEnemyTargetsInRange (UnitModel _unit, Weapon _weapon)
+	static List<Vector3> getEnemyTargetsInRange (Unit _unit, Weapon _weapon)
 	{
 		List<Vector3> result = new List<Vector3> ();
 

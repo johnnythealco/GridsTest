@@ -5,7 +5,12 @@ using UnityEngine.Networking;
 public class ClientInput :  NetworkBehaviour
 {	
 	NetManager NetMgr;
-	JKTesting jktesting;
+
+
+    [SyncVar]
+    public string PlayerName;
+    [SyncVar]
+    public bool ready;
 
 	#region Setup and Network Management
 
@@ -18,7 +23,7 @@ public class ClientInput :  NetworkBehaviour
 	void Start ()
 	{
 		Setup ();
-		BattleAction.StartBattle ();
+		//BattleAction.StartBattle ();
 
 	}
 
@@ -28,14 +33,19 @@ public class ClientInput :  NetworkBehaviour
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-		}
+            var _name = Game.PlayerName;
+            var _netId = (int)this.netId.Value;
+            CmdSetneworkID(_netId, _name);
+        }
 
 		if (!hasAuthority)
 		{
 			this.enabled = false;
 		}
 
-	}
+
+
+    }
 
 	public void Disconnect ()
 	{
@@ -51,6 +61,32 @@ public class ClientInput :  NetworkBehaviour
 			NetworkManager.singleton.StopClient ();
 		}
 	}
+
+    [Command]
+    void CmdSetneworkID(int _id, string _name)
+    {      
+        RpcSetNetworkID(_id, _name);
+    }
+
+    [ClientRpc]
+    void RpcSetNetworkID(int i, string _name)
+    {
+
+        if (this.netId.Value == (uint)i)
+        {
+            if(this.gameObject.name != "Local Player")
+            {
+                this.gameObject.name = "Player " + this.netId.Value.ToString();
+            }
+
+            this.PlayerName = _name;
+            Game.Manager.Players.Add(this);
+        }
+
+
+            
+       
+    }
 
 	#endregion
 
@@ -68,7 +104,7 @@ public class ClientInput :  NetworkBehaviour
 	[ClientRpc]
 	public void RpcDeploy (string _param1, Vector3 _position)
 	{	
-				var _unit = JsonUtility.FromJson<Unit> (_param1);
+				var _unit = JsonUtility.FromJson<UnitState> (_param1);
 				BattleAction.DeployUnit ( _unit, _position);
 	}
     #endregion

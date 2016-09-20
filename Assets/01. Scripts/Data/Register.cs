@@ -6,11 +6,11 @@ public class Register : ScriptableObject
 {
 	#region Units
 
-	public List<UnitModel> unitTypes;
+	public List<Unit> unitTypes;
 
-	public UnitModel GetUnitType (string _UnitType)
+	public Unit GetUnitType (string _UnitType)
 	{
-		UnitModel result = null;
+		Unit result = null;
 
 		foreach (var unitType in unitTypes)
 		{
@@ -22,9 +22,9 @@ public class Register : ScriptableObject
 
 	}
 
-	public List<UnitModel> GetUnitTypes (List<string> _UnitTypes)
+	public List<Unit> GetUnitTypes (List<string> _UnitTypes)
 	{
-		var result = new List<UnitModel> ();
+		var result = new List<Unit> ();
 
 		foreach (var name in _UnitTypes)
 		{
