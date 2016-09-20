@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 using System.Collections;
 using System.Collections.Generic;
 
@@ -33,4 +34,6 @@ public class Game : MonoBehaviour
 
 		Debug.Log ("Game Manager is Awake"); 
 	}
+
+ 
 }

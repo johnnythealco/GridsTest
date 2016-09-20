@@ -9,11 +9,6 @@ public class PlayerDisplay : MonoBehaviour {
     public Text playerName;
     public Toggle readyToggle;
 
-    public delegate void PlayerDisplayDelegate_bool(bool _ReadyStatus);
-    public event PlayerDisplayDelegate_bool onReadyStatusChanged;
-   
-
-
     public void Prime(ClientInput _Player)
     {
         player = _Player;
@@ -22,16 +17,23 @@ public class PlayerDisplay : MonoBehaviour {
             playerName.text = player.PlayerName;
 
         if (readyToggle != null)
-            readyToggle.isOn = player.ready;
+        {
+            if(readyToggle.isOn != player.ready)
+                readyToggle.isOn = player.ready;
+        }
+            
     }
 
     public void ChangeReadyStatus()
     {
 
-        if (onReadyStatusChanged != null)
-        {
-            onReadyStatusChanged.Invoke(readyToggle.isOn);
-        }
+        var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
+        var _netID = (int)LocalPlayer.netId.Value;
+        var _ReadyStatus = readyToggle.isOn;
+
+        LocalPlayer.CmdChangeReadyStatus(_netID, _ReadyStatus);
+
+        Debug.Log("Changed Ready Status Called");
 
     }
 

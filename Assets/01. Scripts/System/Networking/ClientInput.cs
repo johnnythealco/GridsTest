@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 
 public class ClientInput :  NetworkBehaviour
@@ -9,7 +10,7 @@ public class ClientInput :  NetworkBehaviour
 
     [SyncVar]
     public string PlayerName;
-    [SyncVar]
+
     public bool ready;
 
 	#region Setup and Network Management
@@ -23,8 +24,8 @@ public class ClientInput :  NetworkBehaviour
 	void Start ()
 	{
 		Setup ();
-		//BattleAction.StartBattle ();
-
+        //BattleAction.StartBattle ();
+       
 	}
 
 	void Setup ()
@@ -35,7 +36,7 @@ public class ClientInput :  NetworkBehaviour
 			this.gameObject.name = "Local Player";
             var _name = Game.PlayerName;
             var _netId = (int)this.netId.Value;
-            CmdSetneworkID(_netId, _name);
+            CmdJoinBattle(_netId, _name);
         }
 
 		if (!hasAuthority)
@@ -63,13 +64,13 @@ public class ClientInput :  NetworkBehaviour
 	}
 
     [Command]
-    void CmdSetneworkID(int _id, string _name)
+    void CmdJoinBattle(int _id, string _name)
     {      
-        RpcSetNetworkID(_id, _name);
+        RpcJoinBattle(_id, _name);
     }
 
     [ClientRpc]
-    void RpcSetNetworkID(int i, string _name)
+    void RpcJoinBattle(int i, string _name)
     {
 
         if (this.netId.Value == (uint)i)
@@ -80,21 +81,57 @@ public class ClientInput :  NetworkBehaviour
             }
 
             this.PlayerName = _name;
-            Game.Manager.Players.Add(this);
+
+            var _Scene = SceneManager.GetActiveScene().name;
+
+            if (_Scene == "Setup")
+            {
+                var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+                battleSetup.AddPlayer(this);
+            }
+
         }
 
 
-            
-       
+
+
     }
 
-	#endregion
+    [Command]
+    public void CmdChangeReadyStatus(int _id, bool _readyStatus)
+    {
+        RpcReadyStatusChanged(_id, _readyStatus);
+    }
+
+    [ClientRpc]
+    void RpcReadyStatusChanged(int _id, bool _readyStatus)
+    {
+        if (this.netId.Value == (uint)_id)
+        {
+            this.ready = _readyStatus;
+        }
+
+        if (this.netId.Value != (uint)_id)
+        {
+            var _Scene = SceneManager.GetActiveScene().name;
+
+            if (_Scene == "Setup")
+            {
+                var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+
+                battleSetup.playerList.Prime(Game.Manager.Players);
+            }
+
+        }
+    }
+
+    #endregion
 
 
 
-    #region Battle Actions
+        #region Battle Actions
 
-    #region Deploy
+        #region Deploy
     [Command]
 	public void CmdDeploy (string _Unit, Vector3 _position)
 	{
