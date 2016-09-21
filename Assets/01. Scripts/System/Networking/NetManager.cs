@@ -39,19 +39,7 @@ public class NetManager : NetworkManager
 	{
 		NetworkManager.singleton.ServerChangeScene (sceneName);
 	}
-
-
-	public override void OnClientConnect (NetworkConnection conn)
-	{
-		base.OnClientConnect (conn);
-
-//		Debug.Log ("OnClientConnect Called : Conection " + conn.ToString ());
-	}
-
-
-
-
-	
+    
 
 
 

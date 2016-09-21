@@ -4,36 +4,49 @@ using UnityEngine.UI;
 
 public class PlayerDisplay : MonoBehaviour {
 
-    ClientInput player;
+    Player player;
 
     public Text playerName;
     public Toggle readyToggle;
 
-    public void Prime(ClientInput _Player)
+    public void Prime(Player _Player)
     {
         player = _Player;
 
         if (playerName != null)
-            playerName.text = player.PlayerName;
+            playerName.text = player.Name;
 
         if (readyToggle != null)
         {
-            if(readyToggle.isOn != player.ready)
-                readyToggle.isOn = player.ready;
+            if (readyToggle.isOn != player.ReadyStatus)
+                readyToggle.isOn = player.ReadyStatus;
+
+
         }
-            
+
     }
 
     public void ChangeReadyStatus()
     {
-
+        
         var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-        var _netID = (int)LocalPlayer.netId.Value;
+        var _netID = LocalPlayer.netId.Value;
+
+        if (player.ConnectionID != _netID)
+            return;
+
         var _ReadyStatus = readyToggle.isOn;
+        var _PlayerName = Game.PlayerName;
 
-        LocalPlayer.CmdChangeReadyStatus(_netID, _ReadyStatus);
-
+        LocalPlayer.Cmd_PlayerChangeReadyStatus(_netID, _PlayerName, _ReadyStatus);
         Debug.Log("Changed Ready Status Called");
+    }
+
+    public void Click()
+    {
+        Debug.Log("Clicked");
+        readyToggle.isOn = !readyToggle.isOn;
+
 
     }
 

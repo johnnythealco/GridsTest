@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 public class ClientInput :  NetworkBehaviour
 {	
 	NetManager NetMgr;
-
+    
 
     [SyncVar]
     public string PlayerName;
@@ -19,24 +19,49 @@ public class ClientInput :  NetworkBehaviour
 	{
 		DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
+
 	}
 
-	void Start ()
-	{
-		Setup ();
+    void Start()
+    {
+        Setup();
         //BattleAction.StartBattle ();
-       
-	}
 
-	void Setup ()
+           
+        }
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.P))
+            {
+            var _connections = NetworkServer.connections;
+
+            foreach (var _connection in _connections)
+            {
+                var _Player = _connection.playerControllers[0];
+                Debug.Log(_Player.gameObject.name);
+            }
+
+        }
+
+
+    }
+
+    public void Setup ()
 	{
 		if (hasAuthority)
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
-            var _name = Game.PlayerName;
-            var _netId = (int)this.netId.Value;
-            CmdJoinBattle(_netId, _name);
+
+            var _Scene = SceneManager.GetActiveScene().name;
+
+            if (_Scene == "Setup")
+            {
+
+                var _player = new Player(Game.PlayerName, netId.Value);
+               AddPlayer(_player);
+            }
         }
 
 		if (!hasAuthority)
@@ -63,75 +88,68 @@ public class ClientInput :  NetworkBehaviour
 		}
 	}
 
-    [Command]
-    void CmdJoinBattle(int _id, string _name)
-    {      
-        RpcJoinBattle(_id, _name);
-    }
+    #endregion
 
-    [ClientRpc]
-    void RpcJoinBattle(int i, string _name)
+    #region battle Setup Actions
+
+    public void AddPlayer(Player _Player)
     {
-
-        if (this.netId.Value == (uint)i)
-        {
-            if(this.gameObject.name != "Local Player")
-            {
-                this.gameObject.name = "Player " + this.netId.Value.ToString();
-            }
-
-            this.PlayerName = _name;
-
-            var _Scene = SceneManager.GetActiveScene().name;
-
-            if (_Scene == "Setup")
-            {
-                var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
-                battleSetup.AddPlayer(this);
-            }
-
-        }
-
-
-
-
+        var JSON = JsonUtility.ToJson(_Player);
+        Cmd_AddPlayer(JSON);
     }
 
     [Command]
-    public void CmdChangeReadyStatus(int _id, bool _readyStatus)
+    public void Cmd_AddPlayer(string _Player_JSON)
     {
-        RpcReadyStatusChanged(_id, _readyStatus);
+        var _Player = JsonUtility.FromJson<Player>(_Player_JSON);
+        Game.Manager.Players.Add(_Player);
+
+        foreach (var player in Game.Manager.Players)
+        {
+            var JSON = JsonUtility.ToJson(player);
+            Rpc_UpdatePlayerList(JSON);
+        }
     }
 
     [ClientRpc]
-    void RpcReadyStatusChanged(int _id, bool _readyStatus)
+    public void Rpc_UpdatePlayerList(string _Player_JSON)
     {
-        if (this.netId.Value == (uint)_id)
+
+        var _Player = JsonUtility.FromJson<Player>(_Player_JSON);
+
+        if (!Game.Manager.Players.Contains(_Player))
         {
-            this.ready = _readyStatus;
+            Game.Manager.Players.Add(_Player);
         }
 
-        if (this.netId.Value != (uint)_id)
-        {
-            var _Scene = SceneManager.GetActiveScene().name;
+        var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+        battleSetup.playerList.Prime(Game.Manager.Players);
 
-            if (_Scene == "Setup")
-            {
-                var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
-
-                battleSetup.playerList.Prime(Game.Manager.Players);
-            }
-
-        }
     }
+
+
+    [Command]
+    public void Cmd_PlayerChangeReadyStatus(uint _id, string _playerName, bool _readyStatus)
+    {
+        Rpc_PlayerChangeReadyStatus(_id, _playerName, _readyStatus);        
+    }
+
+    [ClientRpc]
+    void Rpc_PlayerChangeReadyStatus(uint _id, string _playerName, bool _readyStatus)
+    {
+        var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+        battleSetup.OnPlayerChangedReadyStatus(_id, _playerName, _readyStatus);
+    }
+
+
 
     #endregion
 
 
 
-        #region Battle Actions
+    #region Battle Actions
 
-        #region Deploy
+    #region Deploy
     [Command]
 	public void CmdDeploy (string _Unit, Vector3 _position)
 	{
