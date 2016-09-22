@@ -19,6 +19,8 @@ public class Game : MonoBehaviour
 
     public List<Player> Players = new List<Player>();
 
+    public static bool isServer { get; set; }
+
 	void Awake ()
 	{
 		if (Manager == null)

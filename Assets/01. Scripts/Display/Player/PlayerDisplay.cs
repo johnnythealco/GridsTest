@@ -20,9 +20,10 @@ public class PlayerDisplay : MonoBehaviour {
         {
             if (readyToggle.isOn != player.ReadyStatus)
                 readyToggle.isOn = player.ReadyStatus;
-
-
         }
+
+        if (_Player.Name != Game.PlayerName)
+            readyToggle.interactable = false;
 
     }
 
@@ -40,14 +41,6 @@ public class PlayerDisplay : MonoBehaviour {
 
         LocalPlayer.Cmd_PlayerChangeReadyStatus(_netID, _PlayerName, _ReadyStatus);
         Debug.Log("Changed Ready Status Called");
-    }
-
-    public void Click()
-    {
-        Debug.Log("Clicked");
-        readyToggle.isOn = !readyToggle.isOn;
-
-
-    }
+    } 
 
 }

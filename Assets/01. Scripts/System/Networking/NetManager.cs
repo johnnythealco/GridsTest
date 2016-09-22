@@ -15,14 +15,16 @@ public class NetManager : NetworkManager
 		SetPort ();
 		SetIPAddress ();
 		NetworkManager.singleton.StartHost ();
+        Game.isServer = true;
 	}
 
 	public void JoinGame ()
 	{
 		SetPort ();
 		SetIPAddress ();
-		NetworkManager.singleton.StartClient ();	
-	}
+		NetworkManager.singleton.StartClient ();
+        Game.isServer = false;
+    }
 
 	void SetPort ()
 	{

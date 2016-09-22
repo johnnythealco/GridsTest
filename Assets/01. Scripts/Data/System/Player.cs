@@ -8,13 +8,27 @@ public class Player
     public uint ConnectionID;
     public bool connected;
     public bool ReadyStatus;
+    public bool human;
+    public FleetState fleet;
 
-    public Player(string _name, uint _id)
+
+
+    public Player(string _name, uint _id, bool _human)
     {
         this.Name = _name;
         this.ConnectionID = _id;
         this.connected = true;
-        this.ReadyStatus = false;
+
+        if(_human)
+            this.ReadyStatus = false;
+        else
+            this.ReadyStatus = true;
+
+        this.human = _human;
+
+        fleet = new FleetState(this.Name, "Basic Fleet");
+
+
     }
 
     #region Overides

@@ -8,6 +8,7 @@ public class PlayerListDisplay : MonoBehaviour {
     List<PlayerDisplay> Displays = new List<PlayerDisplay>();
 
     public PlayerDisplay playerDisplay;
+   
     public Transform listTransform;
 
     
@@ -18,7 +19,7 @@ public class PlayerListDisplay : MonoBehaviour {
 
         foreach (var _player in _Players)
         {
-            var _display = (PlayerDisplay)Instantiate(playerDisplay);
+            PlayerDisplay _display = (PlayerDisplay)Instantiate(playerDisplay, listTransform, false);
             _display.transform.SetParent(listTransform);
             _display.Prime(_player);
             Displays.Add(_display);

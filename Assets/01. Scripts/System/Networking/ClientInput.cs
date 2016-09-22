@@ -6,12 +6,7 @@ using UnityEngine.Networking;
 public class ClientInput :  NetworkBehaviour
 {	
 	NetManager NetMgr;
-    
-
-    [SyncVar]
-    public string PlayerName;
-
-    public bool ready;
+   
 
 	#region Setup and Network Management
 
@@ -19,7 +14,7 @@ public class ClientInput :  NetworkBehaviour
 	{
 		DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
-
+  
 	}
 
     void Start()
@@ -30,22 +25,6 @@ public class ClientInput :  NetworkBehaviour
            
         }
 
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.P))
-            {
-            var _connections = NetworkServer.connections;
-
-            foreach (var _connection in _connections)
-            {
-                var _Player = _connection.playerControllers[0];
-                Debug.Log(_Player.gameObject.name);
-            }
-
-        }
-
-
-    }
 
     public void Setup ()
 	{
@@ -58,8 +37,7 @@ public class ClientInput :  NetworkBehaviour
 
             if (_Scene == "Setup")
             {
-
-                var _player = new Player(Game.PlayerName, netId.Value);
+                var _player = new Player(Game.PlayerName, netId.Value, true);
                AddPlayer(_player);
             }
         }
@@ -92,6 +70,7 @@ public class ClientInput :  NetworkBehaviour
 
     #region battle Setup Actions
 
+    #region Player
     public void AddPlayer(Player _Player)
     {
         var JSON = JsonUtility.ToJson(_Player);
@@ -107,12 +86,13 @@ public class ClientInput :  NetworkBehaviour
         foreach (var player in Game.Manager.Players)
         {
             var JSON = JsonUtility.ToJson(player);
-            Rpc_UpdatePlayerList(JSON);
+            Rpc_AddPlayer_UpdatePlayerList(JSON);
         }
     }
 
+
     [ClientRpc]
-    public void Rpc_UpdatePlayerList(string _Player_JSON)
+    public void Rpc_AddPlayer_UpdatePlayerList(string _Player_JSON)
     {
 
         var _Player = JsonUtility.FromJson<Player>(_Player_JSON);
@@ -120,6 +100,34 @@ public class ClientInput :  NetworkBehaviour
         if (!Game.Manager.Players.Contains(_Player))
         {
             Game.Manager.Players.Add(_Player);
+        }
+
+        var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+        battleSetup.playerList.Prime(Game.Manager.Players);
+
+    }
+
+    public void RemovePlayer(Player _Player)
+    {
+        var JSON = JsonUtility.ToJson(_Player);
+        Cmd_RemovePlayer(JSON);
+    }
+
+    [Command]
+    public void Cmd_RemovePlayer(string _Player_JSON)
+    {
+        Rpc_RemovePlayer_UpdatePlayerList(_Player_JSON);
+    }
+
+    [ClientRpc]
+    public void Rpc_RemovePlayer_UpdatePlayerList(string _Player_JSON)
+    {
+
+        var _Player = JsonUtility.FromJson<Player>(_Player_JSON);
+
+        if (Game.Manager.Players.Contains(_Player))
+        {
+            Game.Manager.Players.Remove(_Player);
         }
 
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
@@ -140,8 +148,46 @@ public class ClientInput :  NetworkBehaviour
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
         battleSetup.OnPlayerChangedReadyStatus(_id, _playerName, _readyStatus);
     }
+    #endregion
+
+    #region Fleet
+
+    public void UpdateFleet(FleetState _fleet, Player _player)
+    {
+        var _fleet_JSON = JsonUtility.ToJson(_fleet);
+        var _player_JSON = JsonUtility.ToJson(_player);
+        Cmd_AddFleet(_fleet_JSON, _player_JSON);
+    }
+
+    [Command]
+    public void Cmd_AddFleet(string _fleet_JSON, string _player_JSON)
+    {
+        var _fleet = JsonUtility.FromJson<FleetState>(_fleet_JSON);
+        var _player = JsonUtility.FromJson<Player>(_player_JSON);
+
+        Rpc_UpdateFleet(_fleet_JSON, _player_JSON);
+    }
 
 
+    [ClientRpc]
+    public void Rpc_UpdateFleet(string _fleet_JSON, string _player_JSON)
+    {
+
+        var _fleet = JsonUtility.FromJson<FleetState>(_fleet_JSON);
+        var _player = JsonUtility.FromJson<Player>(_player_JSON);
+
+        if (Game.Manager.Players.Contains(_player))
+        {
+            //Game.Manager.Players.
+        }
+
+        var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+        battleSetup.playerList.Prime(Game.Manager.Players);
+
+    }
+
+
+    #endregion
 
     #endregion
 

@@ -114,11 +114,32 @@ public class BattleAction : MonoBehaviour
 		}
 	}
 
-	#endregion
+    #endregion
 
-	#region Action Ececution Methods
+    #region Action Ececution Methods
 
-	static bool MoveUnit (Vector3 _end)
+    public static void RandomDeploy(List<UnitState> _Units)
+    {
+        System.Random rnd = new System.Random();
+        foreach (var _unit in _Units)
+        {
+            var i = rnd.Next(Game.GridPoints.Count());
+            var _point = Game.GridPoints[i];
+
+            while (Game.BattleManager.BattleGrid.GetCellAccessiblity(_point) == false)
+            {
+                i = rnd.Next(Game.GridPoints.Count());
+                _point = Game.GridPoints[i];
+            }
+
+            var _unitJSON = JsonUtility.ToJson(_unit);
+            var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
+            LocalPlayer.CmdDeploy(_unitJSON, _point);            
+        }
+
+    }
+
+    static bool MoveUnit (Vector3 _end)
 	{
 		if (Game.BattleManager == null)
 			return false;
