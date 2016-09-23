@@ -16,7 +16,7 @@ public class FleetDisplay : MonoBehaviour {
         fleet = _fleet;
 
         if (ownerName != null)
-            ownerName.text = fleet.owner;
+            ownerName.text = fleet.Owner;
 
         if (fleetName != null)
             fleetName.text = fleet.Name;

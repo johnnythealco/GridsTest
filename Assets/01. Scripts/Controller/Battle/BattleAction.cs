@@ -84,9 +84,8 @@ public class BattleAction : MonoBehaviour
 		{
 		case "Move":
                 {
-                    var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
                     var _destination = MoveDestination;
-                    LocalPlayer.CmdBattleAction("Move", _destination, "none");
+                    Game.NetworkController.CmdBattleAction("Move", _destination, "none");
                 }
                 break;
 		case "Attack":
@@ -94,10 +93,9 @@ public class BattleAction : MonoBehaviour
                     if (ActiveTarget == null)
                         return;
 
-                    var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
                     var _Target = ActiveTarget.transform.position;
                     var _Weapon = ActiveUnit.selectedWeapon;
-                    LocalPlayer.CmdBattleAction("Attack", _Target, _Weapon);
+                    Game.NetworkController.CmdBattleAction("Attack", _Target, _Weapon);
                 }
 			break;
 		case "Evade":
@@ -133,8 +131,8 @@ public class BattleAction : MonoBehaviour
             }
 
             var _unitJSON = JsonUtility.ToJson(_unit);
-            var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-            LocalPlayer.CmdDeploy(_unitJSON, _point);            
+
+            Game.NetworkController.CmdDeploy(_unitJSON, _point);            
         }
 
     }

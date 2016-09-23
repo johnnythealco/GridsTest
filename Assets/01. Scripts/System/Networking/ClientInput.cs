@@ -12,26 +12,27 @@ public class ClientInput :  NetworkBehaviour
 
 	void Awake ()
 	{
-		DontDestroyOnLoad (this.gameObject);
+        Debug.Log(" Network Controller Awake Called ");
+        DontDestroyOnLoad (this.gameObject);
 		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
-  
-	}
+          }
 
     void Start()
     {
         Setup();
-        //BattleAction.StartBattle ();
 
-           
-        }
+   }
 
 
     public void Setup ()
 	{
+        Debug.Log(" Network Controller Setup Called ");
+
 		if (hasAuthority)
 		{
 			NetMgr.LocalPlayer = this;
 			this.gameObject.name = "Local Player";
+            Game.NetworkController = this;
 
             var _Scene = SceneManager.GetActiveScene().name;
 
@@ -39,7 +40,9 @@ public class ClientInput :  NetworkBehaviour
             {
                 var _player = new Player(Game.PlayerName, netId.Value, true);
                AddPlayer(_player);
-            }
+            }             
+
+
         }
 
 		if (!hasAuthority)
@@ -104,6 +107,7 @@ public class ClientInput :  NetworkBehaviour
 
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
         battleSetup.playerList.Prime(Game.Manager.Players);
+        battleSetup.UpdateFleetList();
 
     }
 
@@ -132,22 +136,77 @@ public class ClientInput :  NetworkBehaviour
 
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
         battleSetup.playerList.Prime(Game.Manager.Players);
+        battleSetup.UpdateFleetList();
 
     }
 
 
     [Command]
-    public void Cmd_PlayerChangeReadyStatus(uint _id, string _playerName, bool _readyStatus)
+    public void Cmd_PlayerChangeReadyStatus(uint _id, bool _readyStatus)
     {
-        Rpc_PlayerChangeReadyStatus(_id, _playerName, _readyStatus);        
+        Rpc_PlayerChangeReadyStatus(_id, _readyStatus);        
     }
 
     [ClientRpc]
-    void Rpc_PlayerChangeReadyStatus(uint _id, string _playerName, bool _readyStatus)
+    void Rpc_PlayerChangeReadyStatus(uint _id,bool _readyStatus)
+    {
+        foreach (var Player in Game.Manager.Players)
+        {
+            if (Player.ConnectionID == _id)
+            {
+                Player.ReadyStatus = _readyStatus;
+            }
+        }
+                   
+
+        if (SceneManager.GetActiveScene().name == "Setup")
+        {
+            var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+            battleSetup.OnPlayerChangedReadyStatus();
+        }
+
+        
+    }
+
+    [Command]
+    public void Cmd_SetAllPlayersNotReady()
+    {
+        Rpc_SetAllPlayersNotReady();
+    }
+
+    [ClientRpc]
+    void Rpc_SetAllPlayersNotReady()
     {
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
-        battleSetup.OnPlayerChangedReadyStatus(_id, _playerName, _readyStatus);
+
+        foreach (var _player in Game.Manager.Players)
+        {
+            if(_player.human)
+            {
+                _player.ReadyStatus = false;
+            }
+        }
+
+        battleSetup.playerList.UpdateReadyStatus(Game.Manager.Players);
     }
+
+    public void Cmd_SetAllPlayersReady()
+    {
+        Rpc_SetAllPlayersReady();
+    }
+
+    [ClientRpc]
+    void Rpc_SetAllPlayersReady()
+    {       
+       foreach (var _player in Game.Manager.Players)
+        {
+            if (_player.human)
+            {
+                _player.ReadyStatus = true;
+            }
+        }
+    }
+
     #endregion
 
     #region Fleet
@@ -161,10 +220,7 @@ public class ClientInput :  NetworkBehaviour
 
     [Command]
     public void Cmd_AddFleet(string _fleet_JSON, string _player_JSON)
-    {
-        var _fleet = JsonUtility.FromJson<FleetState>(_fleet_JSON);
-        var _player = JsonUtility.FromJson<Player>(_player_JSON);
-
+    {      
         Rpc_UpdateFleet(_fleet_JSON, _player_JSON);
     }
 
@@ -178,11 +234,12 @@ public class ClientInput :  NetworkBehaviour
 
         if (Game.Manager.Players.Contains(_player))
         {
-            //Game.Manager.Players.
+            var i = Game.Manager.Players.IndexOf(_player);
+            Game.Manager.Players[i].fleet = _fleet;
         }
 
         var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
-        battleSetup.playerList.Prime(Game.Manager.Players);
+        battleSetup.UpdateFleetList();
 
     }
 
@@ -191,6 +248,16 @@ public class ClientInput :  NetworkBehaviour
 
     #endregion
 
+    #region Scene Management
+
+    [Command]
+    public void Cmd_LoadScene(string _SceneName)
+    {
+        NetMgr.LoadScene(_SceneName);
+    }
+
+
+    #endregion
 
 
     #region Battle Actions

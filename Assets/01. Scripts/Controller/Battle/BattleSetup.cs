@@ -35,28 +35,28 @@ public class BattleSetup : MonoBehaviour {
         }
     }
 
-    public void OnPlayerChangedReadyStatus(uint _id, string _playerName, bool _readyStatus)
-    {
-        foreach(var Player in Game.Manager.Players)
-        {
-            if(Player.ConnectionID == _id && Player.Name == _playerName)
-            {
-                Player.ReadyStatus = _readyStatus;
-            }
-        }
-
-
+    public void OnPlayerChangedReadyStatus()
+    { 
         playerList.UpdateReadyStatus(Game.Manager.Players);
+
+        if(AllplayersReady())
+        {
+            Start_Battle_Btn.interactable = true;
+        }
+        else
+        {
+            Start_Battle_Btn.interactable = false;
+        }
     }
     
     public void Add_AI_Player()
     {
         var AI_Name = "Enemy AI :" + Game.Manager.Players.Count();
-        var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-        var _netID = LocalPlayer.netId.Value;
+        
+        var _netID = Game.NetworkController.netId.Value;
         var _player = new Player(AI_Name, _netID, false);
 
-        LocalPlayer.AddPlayer(_player);
+        Game.NetworkController.AddPlayer(_player);
 
     }
 
@@ -69,8 +69,8 @@ public class BattleSetup : MonoBehaviour {
             var _Player = Game.Manager.Players[i];
             if(!_Player.human)
             {
-                var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-                LocalPlayer.RemovePlayer(_Player);
+
+                Game.NetworkController.RemovePlayer(_Player);
                 return;
             }
         }
@@ -78,6 +78,9 @@ public class BattleSetup : MonoBehaviour {
 
     public void Start_Battle()
     {
+        Game.NetworkController.Cmd_SetAllPlayersNotReady();
+        Game.NetworkController.Cmd_LoadScene("Battle");
+
 
     }
 
@@ -86,7 +89,30 @@ public class BattleSetup : MonoBehaviour {
 
     }
 
+    public void UpdateFleetList()
+    {
+        var _fleets = new List<FleetState>();
 
+        foreach(var _Player in Game.Manager.Players)
+        {
+            _fleets.Add(_Player.fleet);
+        }
+
+        fleetList.Prime(_fleets);
+    }
+
+    public bool AllplayersReady()
+    {
+        foreach (var Player in Game.Manager.Players)
+        {
+            if (Player.ReadyStatus == false)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     public static List<UnitState> CreateUnits(List<string> _UnitTypes, string _Owner)
     {
         var result = new List<UnitState>();

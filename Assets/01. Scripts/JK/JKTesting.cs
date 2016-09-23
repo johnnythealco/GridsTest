@@ -69,8 +69,10 @@ public class JKTesting : MonoBehaviour
 				_point = Game.GridPoints [i];
 			}
 
-			netWorkDeploy (_unit, _point);
-		}
+            var _unitJSON = JsonUtility.ToJson(_unit);
+
+            Game.NetworkController.CmdDeploy(_unitJSON, _point);
+        }
 
 		//var _EnemyFleet = CreateUnits (EnemyFleet, "Enemy"); 
 		//foreach (var _unit in _EnemyFleet)

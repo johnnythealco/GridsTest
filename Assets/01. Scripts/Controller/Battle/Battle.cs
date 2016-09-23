@@ -44,12 +44,14 @@ public class Battle : MonoBehaviour
     void Awake()
     {
         TurnManager = turnManager;
-         
+
+
     }
 
 	void Start ()
 	{
         Game.BattleManager = this;
+       
         BattleGrid = Instantiate (flatHexPrefab) as FlatHex;
 		BattleGrid.BuildGrid ();
 		BattleGrid.onClickCell += BattleGrid_onClickCell;
@@ -67,13 +69,19 @@ public class Battle : MonoBehaviour
         selectedTargetCursor.gameObject.SetActive(false);
         gridCursor.gameObject.SetActive(false);
 
+        if(Game.Manager.AllPlayersReady())
+        {
+            StartBattle();
+        }
     }
+
 
     #endregion
 
-	#region Event handlers
+    #region Event handlers 
 
-	void BattleGrid_onRightClickCell (Vector3 _point)
+
+    void BattleGrid_onRightClickCell (Vector3 _point)
 	{
 
 
@@ -198,11 +206,8 @@ public class Battle : MonoBehaviour
 
 	public void StartBattle ()
 	{
-
-		Battle.TurnManager.CmdSortList ();
-
-
-	
+         Debug.Log("All Player Ready Starting Battle");
+		//Battle.TurnManager.CmdSortList ();	
 	}
 
     public void Action_Click()

@@ -30,17 +30,15 @@ public class PlayerDisplay : MonoBehaviour {
     public void ChangeReadyStatus()
     {
         
-        var LocalPlayer = GameObject.Find("Local Player").GetComponent<ClientInput>();
-        var _netID = LocalPlayer.netId.Value;
+        
+        var _netID = Game.NetworkController.netId.Value;
 
         if (player.ConnectionID != _netID)
             return;
 
-        var _ReadyStatus = readyToggle.isOn;
-        var _PlayerName = Game.PlayerName;
+        var _ReadyStatus = readyToggle.isOn;  
 
-        LocalPlayer.Cmd_PlayerChangeReadyStatus(_netID, _PlayerName, _ReadyStatus);
-        Debug.Log("Changed Ready Status Called");
+        Game.NetworkController.Cmd_PlayerChangeReadyStatus(_netID,  _ReadyStatus);
     } 
 
 }

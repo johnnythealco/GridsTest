@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Linq;
 
 
 public class NetManager : NetworkManager
@@ -41,7 +43,24 @@ public class NetManager : NetworkManager
 	{
 		NetworkManager.singleton.ServerChangeScene (sceneName);
 	}
-    
+
+    public override void OnServerReady(NetworkConnection conn)
+    {
+        base.OnServerReady(conn);
+
+        Debug.Log("OnServer Read Called by " + conn.ToString());
+
+        if (conn.playerControllers.Count() >= 1)
+        {
+            var playerController = conn.playerControllers[0];
+            var _networkController = playerController.gameObject.GetComponent<ClientInput>();
+            var _id = _networkController.netId.Value;
+            Game.Manager.PlayerReady(_id);
+        }         
+         
+
+    }
+
 
 
 

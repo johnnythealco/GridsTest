@@ -27,6 +27,27 @@ public class Player
         this.human = _human;
 
         fleet = new FleetState(this.Name, "Basic Fleet");
+        var _units = BattleSetup.CreateUnits(Game.Manager.BasicFleet, this.Name);
+        fleet.Units = _units;
+
+
+
+    }
+
+    public Player(string _name, uint _id, bool _human, FleetState _fleet)
+    {
+        this.Name = _name;
+        this.ConnectionID = _id;
+        this.connected = true;
+
+        if (_human)
+            this.ReadyStatus = false;
+        else
+            this.ReadyStatus = true;
+
+        this.human = _human;
+
+        fleet = _fleet;
 
 
     }
