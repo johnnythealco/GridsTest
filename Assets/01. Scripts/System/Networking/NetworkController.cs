@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 
-public class ClientInput :  NetworkBehaviour
+public class NetworkController :  NetworkBehaviour
 {	
 	
 	#region Setup and Network Management

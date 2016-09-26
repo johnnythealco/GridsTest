@@ -27,7 +27,9 @@ namespace JK
 
 			public List<BattleCellState> State;
 
-			public List<Unit> units;
+            public SpawnPoints spawnpoints;
+
+		
 
 			#region Delegates & Events
 
@@ -52,7 +54,6 @@ namespace JK
 			{
 				Game.GridPoints = new List<Vector3> ();
 				Battle.AllUnits = new List<Unit> ();
-				size = 12;
 				padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
 				spacing.Scale (padding);
@@ -75,6 +76,8 @@ namespace JK
 
 				}
 				positionCollider ();
+
+                spawnpoints = new SpawnPoints(this, 4);
 			}
 
 			void positionCollider ()
@@ -249,8 +252,7 @@ namespace JK
 			{
 				return Grid [Map [_point]];
 			}
-
-	
+            	
 			public bool GetCellAccessiblity (Vector3 _point)
 			{
 				var cell = Grid [Map [_point]];
@@ -301,7 +303,12 @@ namespace JK
 				return result;
 			}
 
-			public List<Vector3> GetTargets(Vector3 _Source, int _range, TargetType _targetType)
+            public int GetDistance(Vector3 _start, Vector3 _destination)
+            {
+                return Map[_start].DistanceFrom(Map[_destination]);
+            }
+
+            public List<Vector3> GetTargets(Vector3 _Source, int _range, TargetType _targetType)
             {
                 
                 var sourceGridPoint = Map[_Source];
@@ -404,6 +411,17 @@ namespace JK
 		
 		
 			}
+
+            public Vector3 GetPoint(string _name)
+            {
+                foreach(var _point in list)
+                {
+                    if (_point.name == _name)
+                        return _point.point;
+                }
+
+                return new Vector3();
+            }
 		}
 
 		#endregion

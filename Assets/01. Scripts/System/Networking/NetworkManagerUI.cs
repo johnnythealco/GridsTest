@@ -11,13 +11,6 @@ public class NetworkManagerUI :  MonoBehaviour
 	public InputField serverInput;
 	public InputField nameInput;
 
-	NetManager NetMgr;
-
-	void Awake ()
-	{
-		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
-	}
-
 	void Start ()
 	{
 		if (nameInput.text == "" || nameInput.text == null)
@@ -39,31 +32,22 @@ public class NetworkManagerUI :  MonoBehaviour
 
 	public void StartHost ()
 	{
-		NetMgr.StartupHost ();
+		Game.NetworkManager.StartupHost ();
 	}
 
 	public void SetPlayerName ()
 	{
 		Game.PlayerName = nameInput.text;
-
-		Debug.Log ("Local Player's name is " + Game.PlayerName);
 	}
 
 	public void JoinGame ()
 	{
-		NetMgr.JoinGame ();
+        Game.NetworkManager.JoinGame ();
 	}
 
 	public void Disconnect ()
 	{
 		
 	}
-
-	//	public void LoadScene2 ()
-	//	{
-	//		NetMgr.LoadScene ("Main2");
-	//	}
-
-
 
 }

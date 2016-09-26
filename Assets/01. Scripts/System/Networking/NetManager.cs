@@ -52,7 +52,7 @@ public class NetManager : NetworkManager
         if (conn.playerControllers.Count() >= 1)
         {
             var playerController = conn.playerControllers[0];
-            var _networkController = playerController.gameObject.GetComponent<ClientInput>();
+            var _networkController = playerController.gameObject.GetComponent<NetworkController>();
             var _id = _networkController.netId.Value;
             Game.Manager.PlayerReady(_id);
 

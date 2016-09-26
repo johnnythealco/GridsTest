@@ -119,7 +119,7 @@ public class BattleSetup : MonoBehaviour {
 
         foreach (var _unit in _UnitTypes)
         {
-            var newUnitType = Game.Manager.register.GetUnitType(_unit);
+            var newUnitType = Game.Register.GetUnitType(_unit);
 
             var newUnit = new UnitState(newUnitType, _Owner);
 

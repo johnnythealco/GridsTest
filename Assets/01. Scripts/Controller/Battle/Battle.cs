@@ -71,11 +71,61 @@ public class Battle : MonoBehaviour
 
         Game.NetworkManager.onAllPlayersReady += onAllPlayersReady;
 
+
+        foreach(var _spawnPoint in BattleGrid.spawnpoints.list)
+        {
+            var _cell = BattleGrid.GetCell(_spawnPoint.point);
+            _cell.Color = Color.green;
+            _cell.
+
+            var _Range = BattleGrid.GetRange(_spawnPoint.point, 4);
+
+            foreach(var _p in _Range)
+            {
+                var _distance = BattleGrid.GetDistance(_spawnPoint.point, _p);
+   
+                switch (_distance)
+                {
+                    case 1:
+                        var _colour1 = new Color(1.0f, 0.92f, 0.016f, 50f);
+                        BattleGrid.GetCell(_p).Color = _colour1;
+                        break;
+                    case 2:
+                        var _colour2 = new Color(0f, 0f, 1f, 50f);
+                        BattleGrid.GetCell(_p).Color = _colour2;
+                        break;
+                    case 3:
+                        var _colour3 = new Color(1f, 0f, 1f, 50f);
+                        BattleGrid.GetCell(_p).Color = _colour3;
+                        break;
+                    case 4:
+                        var _colour4 = new Color(1f,0f,0f,50f);
+                        BattleGrid.GetCell(_p).Color = _colour4;
+                        break;
+                }
+        
+            }
+
+        }
+
     }
 
     private void onAllPlayersReady()
     {
         Debug.Log("All Players Ready");
+        Debug.Log("Starting Battle..");
+
+        foreach (var _Player in Game.Manager.Players)
+        {
+            var _Units = _Player.fleet.Units;
+            if (Game.isServer)
+            {
+                BattleAction.RandomDeploy(_Units);
+            }
+        }
+
+        //StartBattle();
+
     }
 
 
@@ -210,8 +260,8 @@ public class Battle : MonoBehaviour
 	public void StartBattle ()
 	{
          Debug.Log("All Player Ready Starting Battle");
-		//Battle.TurnManager.CmdSortList ();	
-	}
+        Battle.TurnManager.CmdSortList();
+    }
 
     public void Action_Click()
     {

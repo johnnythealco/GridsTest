@@ -37,7 +37,7 @@ public class JKTesting : MonoBehaviour
 		var result = new List<UnitState> ();
 		foreach (var _unit in _UnitTypes)
 		{
-			var newUnitType = Game.Manager.register.GetUnitType (_unit);
+			var newUnitType = Game.Register.GetUnitType (_unit);
 
 			var newUnit = new UnitState (newUnitType, _Owner);
 
@@ -50,7 +50,7 @@ public class JKTesting : MonoBehaviour
 	void netWorkDeploy (UnitState _unit, Vector3 _position)
 	{
 		var _unitJSON = JsonUtility.ToJson (_unit);		
-		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<ClientInput> ();
+		var LocalPlayer = GameObject.Find ("Local Player").GetComponent<NetworkController> ();
 		LocalPlayer.CmdDeploy (_unitJSON, _position);
 	}
 

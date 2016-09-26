@@ -54,7 +54,7 @@ public class BattleAction : MonoBehaviour
         var battleManager = Game.BattleManager;
         var BattleGrid = battleManager.BattleGrid;
 
-        var register = Game.Manager.register;
+        var register = Game.Register;
         var unitType = register.GetUnitType(_unit.UnitType);
 
         var unitModel = (Unit)Instantiate(unitType);
@@ -119,6 +119,7 @@ public class BattleAction : MonoBehaviour
     public static void RandomDeploy(List<UnitState> _Units)
     {
         System.Random rnd = new System.Random();
+
         foreach (var _unit in _Units)
         {
             var i = rnd.Next(Game.GridPoints.Count());

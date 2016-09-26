@@ -7,9 +7,14 @@ public class Game : MonoBehaviour
 {
 
     #region Properties
-    public Register register;
 
-    public NetManager networkManager;
+    #region References
+    [SerializeField]
+    Register register;
+
+    [SerializeField]
+    NetManager networkManager;
+    #endregion
 
     public static Game Manager = null;
 
@@ -19,7 +24,7 @@ public class Game : MonoBehaviour
 
 	public static string PlayerName{ get; set; }
 
-    public static ClientInput NetworkController { get; set; }
+    public static NetworkController NetworkController { get; set; }
 
 	public static Battle BattleManager{ get; set; }
 
