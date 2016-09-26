@@ -69,10 +69,13 @@ public class Battle : MonoBehaviour
         selectedTargetCursor.gameObject.SetActive(false);
         gridCursor.gameObject.SetActive(false);
 
-        if(Game.Manager.AllPlayersReady())
-        {
-            StartBattle();
-        }
+        Game.NetworkManager.onAllPlayersReady += onAllPlayersReady;
+
+    }
+
+    private void onAllPlayersReady()
+    {
+        Debug.Log("All Players Ready");
     }
 
 

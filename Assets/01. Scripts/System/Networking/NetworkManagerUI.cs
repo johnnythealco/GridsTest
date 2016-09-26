@@ -56,7 +56,7 @@ public class NetworkManagerUI :  MonoBehaviour
 
 	public void Disconnect ()
 	{
-		NetMgr.LocalPlayer.Disconnect ();
+		
 	}
 
 	//	public void LoadScene2 ()

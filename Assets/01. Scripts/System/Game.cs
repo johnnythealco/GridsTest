@@ -9,9 +9,13 @@ public class Game : MonoBehaviour
     #region Properties
     public Register register;
 
+    public NetManager networkManager;
+
     public static Game Manager = null;
 
 	public static Register Register{ get; set; }
+
+    public static NetManager NetworkManager { get; set; }
 
 	public static string PlayerName{ get; set; }
 
@@ -29,17 +33,16 @@ public class Game : MonoBehaviour
 
     #endregion
 
-    public delegate void GameDelegate_netID(uint _id);
-    public event GameDelegate_netID onPlayerReady;
-    
     void Awake ()
 	{
 		if (Manager == null)
 		{
 			Manager = this;
 			Register = register;
+            NetworkManager = networkManager;
 
-		} else if (Manager != this)
+
+        } else if (Manager != this)
 			Destroy (gameObject);
 
 
@@ -68,23 +71,11 @@ public class Game : MonoBehaviour
             {
                 Player.ReadyStatus = true;
             }
-        }
-        
-        if(AllPlayersReady())
-        {
-            Game.NetworkController.Cmd_SetAllPlayersReady();
-        }    
+        }       
+  
     }
 
-    public bool AllPlayersReady()
-    {
-        foreach(var _Player in Players)
-        {
-            if (_Player.ReadyStatus != true)
-                return false;
-        }
-        return true;
-    }
+
 
     #region Testing
     public static void AddBasicFleet(string _player)

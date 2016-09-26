@@ -5,38 +5,31 @@ using UnityEngine.Networking;
 
 public class ClientInput :  NetworkBehaviour
 {	
-	NetManager NetMgr;
-   
-
+	
 	#region Setup and Network Management
 
 	void Awake ()
 	{
-        Debug.Log(" Network Controller Awake Called ");
+
         DontDestroyOnLoad (this.gameObject);
-		NetMgr = GameObject.Find ("! NetworkManager !").GetComponent<NetManager> ();
-          }
+
+     }
 
     void Start()
     {
         Setup();
-
    }
 
 
     public void Setup ()
 	{
-        Debug.Log(" Network Controller Setup Called ");
-
-		if (hasAuthority)
+        if (hasAuthority)
 		{
-			NetMgr.LocalPlayer = this;
-			this.gameObject.name = "Local Player";
             Game.NetworkController = this;
 
             var _Scene = SceneManager.GetActiveScene().name;
 
-            if (_Scene == "Setup")
+            if (_Scene == "Lobby")
             {
                 var _player = new Player(Game.PlayerName, netId.Value, true);
                AddPlayer(_player);
@@ -159,7 +152,7 @@ public class ClientInput :  NetworkBehaviour
         }
                    
 
-        if (SceneManager.GetActiveScene().name == "Setup")
+        if (SceneManager.GetActiveScene().name == "Lobby")
         {
             var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
             battleSetup.OnPlayerChangedReadyStatus();
@@ -253,7 +246,7 @@ public class ClientInput :  NetworkBehaviour
     [Command]
     public void Cmd_LoadScene(string _SceneName)
     {
-        NetMgr.LoadScene(_SceneName);
+        Game.NetworkManager.LoadScene(_SceneName);
     }
 
 

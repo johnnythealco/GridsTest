@@ -8,11 +8,12 @@ using System.Linq;
 
 
 public class NetManager : NetworkManager
-{
+{	
+    public delegate void NetManagerDelegate();
 
-	public ClientInput LocalPlayer;
+    public event NetManagerDelegate onAllPlayersReady;
 
-	public void StartupHost ()
+    public void StartupHost ()
 	{
 		SetPort ();
 		SetIPAddress ();
@@ -46,9 +47,7 @@ public class NetManager : NetworkManager
 
     public override void OnServerReady(NetworkConnection conn)
     {
-        base.OnServerReady(conn);
-
-        Debug.Log("OnServer Read Called by " + conn.ToString());
+        base.OnServerReady(conn);      
 
         if (conn.playerControllers.Count() >= 1)
         {
@@ -56,9 +55,25 @@ public class NetManager : NetworkManager
             var _networkController = playerController.gameObject.GetComponent<ClientInput>();
             var _id = _networkController.netId.Value;
             Game.Manager.PlayerReady(_id);
+
+            if(AllPlayersReady())
+            {
+                if (onAllPlayersReady != null)
+                    onAllPlayersReady.Invoke();
+            }
         }         
          
 
+    }
+
+    public bool AllPlayersReady()
+    {
+        foreach (var _Player in Game.Manager.Players)
+        {
+            if (_Player.ReadyStatus != true)
+                return false;
+        }
+        return true;
     }
 
 
