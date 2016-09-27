@@ -28,13 +28,7 @@ public class BattleAction : MonoBehaviour
 
     #region Action Execution Network Recievers
 
-    public static void StartBattle ()
-	{ 
-		var jktesting = GameObject.Find ("! JKTESTING !").GetComponent<JKTesting> (); 
-		jktesting.QuickDeploy ();
-	}
-
-	public static bool Execute (string _action, Vector3 _target, string _param)
+ 	public static bool Execute (string _action, Vector3 _target, string _param)
 	{
 		switch (_action)
 		{
@@ -52,7 +46,7 @@ public class BattleAction : MonoBehaviour
             return false;
 
         var battleManager = Game.BattleManager;
-        var BattleGrid = battleManager.BattleGrid;
+        var BattleGrid = battleManager.battleGrid;
 
         var register = Game.Register;
         var unitType = register.GetUnitType(_unit.UnitType);
@@ -71,7 +65,29 @@ public class BattleAction : MonoBehaviour
 
         return true;
     }
+    public static void DeployPlayerFleet(Player _player)
+    {
     
+        var BattleGrid = Game.BattleManager.battleGrid;
+
+        foreach (var _unit in _player.fleet.Units)
+        {
+            var unitType = Game.Register.GetUnitType(_unit.UnitType);
+            var _position = _unit.Position;
+
+            var unitModel = (Unit)Instantiate(unitType);
+            unitModel.transform.position = _position;
+            unitModel.setUnitState(_unit);
+            unitModel.selectedWeapon = unitModel.Weapons.First();
+            unitModel.selectedAction = unitModel.Actions.First();
+
+            BattleGrid.RegisterUnit(_position, unitModel, CellContents.unit);
+            JKLog.Log(_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString());
+
+        }
+    }
+
+
     #endregion
 
     #region Action Network Senders
@@ -116,24 +132,21 @@ public class BattleAction : MonoBehaviour
 
     #region Action Ececution Methods
 
-    public static void RandomDeploy(List<UnitState> _Units)
+    public static void RandomDeploy(List<UnitState> _Units, List<Vector3> _DeploymentArea)
     {
         System.Random rnd = new System.Random();
 
         foreach (var _unit in _Units)
         {
-            var i = rnd.Next(Game.GridPoints.Count());
-            var _point = Game.GridPoints[i];
+            var i = rnd.Next(_DeploymentArea.Count());
+            var _point = _DeploymentArea[i];
 
-            while (Game.BattleManager.BattleGrid.GetCellAccessiblity(_point) == false)
+            while (Game.BattleManager.battleGrid.GetCellAccessiblity(_point) == false)
             {
-                i = rnd.Next(Game.GridPoints.Count());
-                _point = Game.GridPoints[i];
+                i = rnd.Next(_DeploymentArea.Count());
+                _point = _DeploymentArea[i];
             }
-
-            var _unitJSON = JsonUtility.ToJson(_unit);
-
-            Game.NetworkController.CmdDeploy(_unitJSON, _point);            
+            _unit.Position = _point;        
         }
 
     }
@@ -144,7 +157,7 @@ public class BattleAction : MonoBehaviour
 			return false;
 		
 		var battleManager = Game.BattleManager;
-		var BattleGrid = battleManager.BattleGrid;
+		var BattleGrid = battleManager.battleGrid;
 
 	
         var _start = ActiveUnit.transform.position;
@@ -172,7 +185,7 @@ public class BattleAction : MonoBehaviour
 		if (Game.BattleManager == null)
 			return false;
 
-		var BattleGrid = Game.BattleManager.BattleGrid;
+		var BattleGrid = Game.BattleManager.battleGrid;
         var _target = BattleGrid.GetCell (_targetPosition).unit;
 
         var destroyed = _target.HitBy (_weapon);
@@ -201,7 +214,7 @@ public class BattleAction : MonoBehaviour
 
 	public static void GetLegalMoves (Unit _unit)
 	{
-		BattleAction.LegalMoves = Game.BattleManager.BattleGrid.GetRange (_unit.transform.position, _unit.Engines); 
+		BattleAction.LegalMoves = Game.BattleManager.battleGrid.GetRange (_unit.transform.position, _unit.Engines); 
 
 	}
 
@@ -239,12 +252,12 @@ public class BattleAction : MonoBehaviour
         {
             case TargetType.enemy:
                 {
-                   LegalTargets =  Game.BattleManager.BattleGrid.GetTargets(_source, _range, TargetType.enemy); 
+                   LegalTargets =  Game.BattleManager.battleGrid.GetTargets(_source, _range, TargetType.enemy); 
                 }
                 break;
             case TargetType.ally:
                 {
-                    LegalTargets = Game.BattleManager.BattleGrid.GetTargets(_source, _range, TargetType.ally);
+                    LegalTargets = Game.BattleManager.battleGrid.GetTargets(_source, _range, TargetType.ally);
                 }
                 break;
             case TargetType.empty:
@@ -259,7 +272,7 @@ public class BattleAction : MonoBehaviour
 	{
 		List<Vector3> result = new List<Vector3> ();
 
-		var _grid = Game.BattleManager.BattleGrid;
+		var _grid = Game.BattleManager.battleGrid;
 		var occupiedCells = _grid.occupiedCells;
 
 

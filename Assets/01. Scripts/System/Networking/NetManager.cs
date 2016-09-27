@@ -13,6 +13,8 @@ public class NetManager : NetworkManager
 
     public event NetManagerDelegate onAllPlayersReady;
 
+    public static bool AllPlayersReady;
+
     public void StartupHost ()
 	{
 		SetPort ();
@@ -56,7 +58,7 @@ public class NetManager : NetworkManager
             var _id = _networkController.netId.Value;
             Game.Manager.PlayerReady(_id);
 
-            if(AllPlayersReady())
+            if(CheckAllPlayersReady())
             {
                 if (onAllPlayersReady != null)
                     onAllPlayersReady.Invoke();
@@ -66,13 +68,17 @@ public class NetManager : NetworkManager
 
     }
 
-    public bool AllPlayersReady()
+    public bool CheckAllPlayersReady()
     {
         foreach (var _Player in Game.Manager.Players)
         {
             if (_Player.ReadyStatus != true)
+            {
+                AllPlayersReady = false;
                 return false;
+            }
         }
+        AllPlayersReady = true;
         return true;
     }
 

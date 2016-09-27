@@ -10,12 +10,16 @@ namespace JK
 	{
 
 		[RequireComponent (typeof(BoxCollider))]
-		public class FlatHex : GLMonoBehaviour
+		public class BattleGrid : GLMonoBehaviour
 		{
-
-			public int size;
-			Vector2 padding;
-			public BattleCell flatHexCell;
+            [SerializeField]
+			int size;
+            [SerializeField]
+			BattleCell flatHexCell;
+            [SerializeField]
+            int spawnPointBuffer;
+            [SerializeField]
+            int deploymentAreaSize;
 
 			FlatHexPoint mouseGridPoint;
 			FlatHexPoint newMouseGridPoint;
@@ -25,15 +29,29 @@ namespace JK
 
 			public IMap3D<FlatHexPoint> Map{ get; set; }
 
-			public List<BattleCellState> State;
+            public static List<Vector3> Spawnpoints;
+            public static List<List<Vector3>> DeploymentAreas;
 
-            public SpawnPoints spawnpoints;
+            public static Vector3 CenterSpawn;
+            public static Vector3 NorthSpawn;
+            public static Vector3 SouthSpawn;
+            public static Vector3 NorthEastSpawn;
+            public static Vector3 SouthEastSpawn;
+            public static Vector3 NorthWestSpawn;
+            public static Vector3 SouthWestSpawn;
 
-		
+            public static List<Vector3> CenterDeploymentArea;
+            public static List<Vector3> NorthDeploymentArea;
+            public static List<Vector3> SouthDeploymentArea;
+            public static List<Vector3> NorthEastDeploymentArea;
+            public static List<Vector3> SouthEastDeploymentArea;
+            public static List<Vector3> NorthWestDeploymentArea;
+            public static List<Vector3> SouthWestDeploymentArea;
 
-			#region Delegates & Events
 
-			public delegate void FlatHexDelegate_point_cell (Vector3 _point);
+            #region Delegates & Events
+
+            public delegate void FlatHexDelegate_point_cell (Vector3 _point);
 
 			public delegate void FlatHexDelegate ();
 
@@ -42,25 +60,33 @@ namespace JK
 			public event FlatHexDelegate_point_cell onRightClickCell;
 			public event FlatHexDelegate onNoCellSelected;
 
-			#endregion
+            #endregion
 
-			public List<BattleCell> occupiedCells = new List<BattleCell> ();
+            public List<BattleCell> occupiedCells = new List<BattleCell>();
 
 
 
-			#region Grid Building
+            #region Grid Building
 
-			public void BuildGrid ()
+            public void Setup()
+            {
+                BuildGrid();
+                positionCollider();
+                CreateSpawnPoints(spawnPointBuffer, deploymentAreaSize);
+
+
+            }
+
+            public void BuildGrid ()
 			{
 				Game.GridPoints = new List<Vector3> ();
 				Battle.AllUnits = new List<Unit> ();
-				padding = new Vector2 (1.1f, 1.1f);
+				var padding = new Vector2 (1.1f, 1.1f);
 				var spacing = flatHexCell.Dimensions;
 				spacing.Scale (padding);
 
 				Grid = FlatHexGrid<BattleCell>.Hexagon (size);
 				Map = new FlatHexMap (spacing).AnchorCellMiddleCenter ().To3DXZ ();
-				State = new List<BattleCellState> ();
 				foreach (var point in Grid)
 				{
 					var cell = Instantiate (flatHexCell);
@@ -76,8 +102,6 @@ namespace JK
 
 				}
 				positionCollider ();
-
-                spawnpoints = new SpawnPoints(this, 4);
 			}
 
 			void positionCollider ()
@@ -360,70 +384,56 @@ namespace JK
 
             }
 
-            #endregion
+            public void CreateSpawnPoints(int _buffer, int _deploymentAreaSize)
+            {
+               
+                int _point = size - _buffer;
+
+                CenterSpawn = Map[new FlatHexPoint(0, 0)];
+                CenterDeploymentArea = GetRange(CenterSpawn, _deploymentAreaSize);
+
+                NorthSpawn = Map[new FlatHexPoint(0, _point)];
+                NorthDeploymentArea = GetRange(NorthSpawn, _deploymentAreaSize);
+
+                SouthSpawn = Map[new FlatHexPoint(0, -_point)];
+                SouthDeploymentArea = GetRange(SouthSpawn, _deploymentAreaSize);
+
+                NorthEastSpawn = Map[new FlatHexPoint(_point, 0)];
+                NorthEastDeploymentArea = GetRange(NorthEastSpawn, _deploymentAreaSize);
+
+                SouthEastSpawn = Map[new FlatHexPoint(_point, -_point)];
+                SouthEastDeploymentArea = GetRange(SouthEastSpawn, _deploymentAreaSize);
+
+                NorthWestSpawn = Map[new FlatHexPoint(-_point, _point)];
+                NorthWestDeploymentArea = GetRange(NorthWestSpawn, _deploymentAreaSize);
+
+                SouthWestSpawn = Map[new FlatHexPoint(-_point, 0)];
+                SouthWestDeploymentArea = GetRange(SouthWestSpawn, _deploymentAreaSize);
+
+                Spawnpoints = new List<Vector3>();
+                Spawnpoints.Add(CenterSpawn);
+                Spawnpoints.Add(NorthSpawn);
+                Spawnpoints.Add(SouthSpawn);
+                Spawnpoints.Add(NorthEastSpawn);
+                Spawnpoints.Add(SouthEastSpawn);
+                Spawnpoints.Add(NorthWestSpawn);
+                Spawnpoints.Add(SouthWestSpawn);
+
+                DeploymentAreas = new List<List<Vector3>>();
+                DeploymentAreas.Add(CenterDeploymentArea);
+                DeploymentAreas.Add(NorthDeploymentArea);
+                DeploymentAreas.Add(SouthDeploymentArea);
+                DeploymentAreas.Add(NorthEastDeploymentArea);
+                DeploymentAreas.Add(SouthEastDeploymentArea);
+                DeploymentAreas.Add(NorthWestDeploymentArea);
+                DeploymentAreas.Add(SouthWestDeploymentArea);
+
 
         }
 
-		#region Spawnpoints
+            #endregion
 
-		public class SpawnPoint
-		{
-			public string name;
-			public Vector3 point;
-
-			public SpawnPoint (string _name, Vector3 _point)
-			{
-				this.name = _name;
-				this.point = _point;
-			}
-		}
-
-		public class SpawnPoints
-		{
-			public List<SpawnPoint> list = new List<SpawnPoint> ();
-
-		
-			/// <summary>
-			/// Initializes a new instance of the SpawnPoints class.
-			/// Reccommended buffer or 3.
-			/// </summary>
-			/// <param name="_Grid">Grid.</param>
-			/// <param name="_buffer">Buffer.</param>
-			public SpawnPoints (FlatHex _Grid, int _buffer)
-			{
-				int _spawnpointBuffer = _Grid.size / _buffer;
-				int _point = _Grid.size - _spawnpointBuffer;
-		
-				var centerSpawn = new SpawnPoint ("Center", _Grid.Map [new FlatHexPoint (0, 0)]);
-				var northSpawn = new SpawnPoint ("North", _Grid.Map [new FlatHexPoint (0, _point)]);
-				var southSpawn = new SpawnPoint ("South", _Grid.Map [new FlatHexPoint (0, -_point)]);
-				var northEastSpwan = new SpawnPoint ("NorthEast", _Grid.Map [new FlatHexPoint (_point, 0)]);
-				var southEastSpwan = new SpawnPoint ("SouthEast", _Grid.Map [new FlatHexPoint (_point, -_point)]);
-				var northWestSpawn = new SpawnPoint ("NorthWest", _Grid.Map [new FlatHexPoint (-_point, _point)]);
-				var southWestSpawn = new SpawnPoint ("SouthWest", _Grid.Map [new FlatHexPoint (-_point, 0)]);
-				list.Add (centerSpawn);
-				list.Add (northSpawn);
-				list.Add (southSpawn);
-				list.Add (northEastSpwan);
-				list.Add (southEastSpwan);
-				list.Add (northWestSpawn);
-				list.Add (southWestSpawn);
-		
-		
-			}
-
-            public Vector3 GetPoint(string _name)
-            {
-                foreach(var _point in list)
-                {
-                    if (_point.name == _name)
-                        return _point.point;
-                }
-
-                return new Vector3();
-            }
-		}
-
-		#endregion
+        }
+        
 	}
 }

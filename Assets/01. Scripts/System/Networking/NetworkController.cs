@@ -133,7 +133,9 @@ public class NetworkController :  NetworkBehaviour
 
     }
 
+    #endregion
 
+    #region Ready Status
     [Command]
     public void Cmd_PlayerChangeReadyStatus(uint _id, bool _readyStatus)
     {
@@ -145,7 +147,7 @@ public class NetworkController :  NetworkBehaviour
     {
         foreach (var Player in Game.Manager.Players)
         {
-            if (Player.ConnectionID == _id)
+            if (Player.human && Player.ConnectionID == _id)
             {
                 Player.ReadyStatus = _readyStatus;
             }
@@ -164,41 +166,59 @@ public class NetworkController :  NetworkBehaviour
     [Command]
     public void Cmd_SetAllPlayersNotReady()
     {
-        Rpc_SetAllPlayersNotReady();
-    }
-
-    [ClientRpc]
-    void Rpc_SetAllPlayersNotReady()
-    {
-        var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
-
         foreach (var _player in Game.Manager.Players)
         {
-            if(_player.human)
+            if (_player.human)
             {
                 _player.ReadyStatus = false;
             }
         }
 
-        battleSetup.playerList.UpdateReadyStatus(Game.Manager.Players);
-    }
-
-    public void Cmd_SetAllPlayersReady()
-    {
-        Rpc_SetAllPlayersReady();
+        if (SceneManager.GetActiveScene().name == "Lobby")
+        {
+            var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+            battleSetup.playerList.UpdateReadyStatus(Game.Manager.Players);
+        }
+        Rpc_UpdateAllPlayersReadyDisplay();
     }
 
     [ClientRpc]
-    void Rpc_SetAllPlayersReady()
-    {       
-       foreach (var _player in Game.Manager.Players)
+    void Rpc_UpdateAllPlayersReadyDisplay()
+    {    
+        if (SceneManager.GetActiveScene().name == "Lobby")
+        {
+            var battleSetup = GameObject.Find("BattleSetup").GetComponent<BattleSetup>();
+            battleSetup.playerList.UpdateReadyStatus(Game.Manager.Players);
+        }
+    }
+
+    void AllPlayersNotReady()
+    {
+        if (!isServer)
+            return;
+
+        foreach (var _player in Game.Manager.Players)
         {
             if (_player.human)
             {
-                _player.ReadyStatus = true;
+                _player.ReadyStatus = false;
             }
         }
     }
+
+    
+    void PlayerReady()
+    {
+        var neitID = netId.Value;
+        Cmd_PlayerChangeReadyStatus(neitID, true);
+
+    }
+
+
+
+
+   
+
 
     #endregion
 
@@ -256,17 +276,21 @@ public class NetworkController :  NetworkBehaviour
     #region Battle Actions
 
     #region Deploy
+
+ 
+
     [Command]
-	public void CmdDeploy (string _Unit, Vector3 _position)
+	public void CmdDeploy (string _Player)
 	{
-		RpcDeploy (_Unit, _position);
-	}
+
+		RpcDeploy (_Player);
+    }
 
 	[ClientRpc]
-	public void RpcDeploy (string _param1, Vector3 _position)
+	public void RpcDeploy (string _Player)
 	{	
-				var _unit = JsonUtility.FromJson<UnitState> (_param1);
-				BattleAction.DeployUnit ( _unit, _position);
+		var _player = JsonUtility.FromJson<Player> (_Player);
+        BattleAction.DeployPlayerFleet(_player);
 	}
     #endregion
 

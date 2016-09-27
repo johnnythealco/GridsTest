@@ -5,13 +5,13 @@ using System.Collections.Generic;
 [System.Serializable]
 public class UnitState
 {
-	public Vector3 Position{ get; set; }
 
-	public string Owner;
 
 	public string UnitType;
+    public Vector3 Position;
+    public string Owner;
 
-	public unitSize Size{ get { return Game.Register.GetUnitType (UnitType).Size; } }
+    public unitSize Size{ get { return Game.Register.GetUnitType (UnitType).Size; } }
 
 	public ArmourType armourType { get { return Game.Register.GetUnitType (UnitType).ArmourType; } }
 

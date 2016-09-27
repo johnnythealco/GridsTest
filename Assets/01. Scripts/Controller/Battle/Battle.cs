@@ -9,7 +9,7 @@ public class Battle : MonoBehaviour
     #region Variables
 
     #region public
-    public FlatHex flatHexPrefab;
+    public BattleGrid flatHexPrefab;
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
 	public CameraCTRL cameraCTRL;
@@ -18,7 +18,7 @@ public class Battle : MonoBehaviour
 
     #region Properties
 
-    public FlatHex BattleGrid{ get; set; }
+    public BattleGrid battleGrid{ get; set; }
 
 	public static Turn TurnManager{ get; set; }
 
@@ -52,12 +52,12 @@ public class Battle : MonoBehaviour
 	{
         Game.BattleManager = this;
        
-        BattleGrid = Instantiate (flatHexPrefab) as FlatHex;
-		BattleGrid.BuildGrid ();
-		BattleGrid.onClickCell += BattleGrid_onClickCell;
-		BattleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
-		BattleGrid.onRightClickCell += BattleGrid_onRightClickCell;
-		BattleGrid.onNoCellSelected += BattleGrid_onNoCellSelected;
+        battleGrid = Instantiate (flatHexPrefab) as BattleGrid;
+		battleGrid.Setup();
+		battleGrid.onClickCell += BattleGrid_onClickCell;
+		battleGrid.onMouseOverCell += BattleGrid_onMouseOverCell;
+		battleGrid.onRightClickCell += BattleGrid_onRightClickCell;
+		battleGrid.onNoCellSelected += BattleGrid_onNoCellSelected;
 
 		Battle.TurnManager.onUnitStartTrun += OnUnitStartTrun;
 		Battle.TurnManager.onUnitEndTrun += OnUnitEndTrun;
@@ -72,41 +72,6 @@ public class Battle : MonoBehaviour
         Game.NetworkManager.onAllPlayersReady += onAllPlayersReady;
 
 
-        foreach(var _spawnPoint in BattleGrid.spawnpoints.list)
-        {
-            var _cell = BattleGrid.GetCell(_spawnPoint.point);
-            _cell.Color = Color.green;
-            _cell.
-
-            var _Range = BattleGrid.GetRange(_spawnPoint.point, 4);
-
-            foreach(var _p in _Range)
-            {
-                var _distance = BattleGrid.GetDistance(_spawnPoint.point, _p);
-   
-                switch (_distance)
-                {
-                    case 1:
-                        var _colour1 = new Color(1.0f, 0.92f, 0.016f, 50f);
-                        BattleGrid.GetCell(_p).Color = _colour1;
-                        break;
-                    case 2:
-                        var _colour2 = new Color(0f, 0f, 1f, 50f);
-                        BattleGrid.GetCell(_p).Color = _colour2;
-                        break;
-                    case 3:
-                        var _colour3 = new Color(1f, 0f, 1f, 50f);
-                        BattleGrid.GetCell(_p).Color = _colour3;
-                        break;
-                    case 4:
-                        var _colour4 = new Color(1f,0f,0f,50f);
-                        BattleGrid.GetCell(_p).Color = _colour4;
-                        break;
-                }
-        
-            }
-
-        }
 
     }
 
@@ -115,17 +80,31 @@ public class Battle : MonoBehaviour
         Debug.Log("All Players Ready");
         Debug.Log("Starting Battle..");
 
-        foreach (var _Player in Game.Manager.Players)
+        for(int i = 0;i < Game.Manager.Players.Count();i++)
         {
-            var _Units = _Player.fleet.Units;
+            var _Player = Game.Manager.Players[i];
+            var _DeploymentArea = BattleGrid.DeploymentAreas[i];
             if (Game.isServer)
             {
-                BattleAction.RandomDeploy(_Units);
+                Debug.Log("Deploying Fleet for " + _Player.Name);
+                BattleAction.RandomDeploy(_Player.fleet.Units,_DeploymentArea);
             }
         }
 
-        //StartBattle();
+        foreach(var _player in Game.Manager.Players)
+        {
+            var JSON = JsonUtility.ToJson(_player);
+            Game.NetworkController.CmdDeploy(JSON);
+        }
 
+    }
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            StartBattle();
+        }
     }
 
 
@@ -185,7 +164,7 @@ public class Battle : MonoBehaviour
                 BattleAction.ActiveUnit.selectedAction = ("Attack");
             
             unitDisplay.Prime(BattleAction.ActiveUnit);
-            BattleAction.ActiveTarget = BattleGrid.GetCell(_point).unit;
+            BattleAction.ActiveTarget = battleGrid.GetCell(_point).unit;
             selectedTargetCursor.transform.position = _point;
             selectedTargetCursor.gameObject.SetActive(true);
             selectedTargetCursor.color = Color.red;
@@ -330,7 +309,7 @@ public class Battle : MonoBehaviour
 
         var start = BattleAction.ActiveUnit.transform.position;
         var end = BattleAction.MoveDestination;
-        BattleAction.MovePath = BattleGrid.getGridPath(start, end);
+        BattleAction.MovePath = battleGrid.getGridPath(start, end);
 
         foreach(var step in BattleAction.MovePath)
         {
@@ -375,7 +354,7 @@ public class Battle : MonoBehaviour
 
 		foreach (var _position in _positions)
 		{
-			var _cell = BattleGrid.GetCell (_position);
+			var _cell = battleGrid.GetCell (_position);
 
 			if (_cell.unit != null)
 			{
