@@ -11,137 +11,110 @@ public class Turn : NetworkBehaviour
 
     public delegate void TurnDelegate ();
 
-	public event TurnDelegate onUnitStartTrun;
-	public event TurnDelegate onUnitEndTrun;
+	//public event TurnDelegate onUnitStartTrun;
+	//public event TurnDelegate onUnitEndTrun;
 
 
-	public void StartTurn ()
-	{
-        BattleAction.ActiveUnit = TurnOrder [0];
+ //   [ClientRpc]
+	//public void Rpc_StartTurn ()
+	//{
+ //       BattleAction.ActiveUnit = TurnOrder [0];
 
-        if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
-        {
-            GetNextUnitforLocalPlayer();
-            Battle.LocalPlayerTurn = false;
-        }
-        else
-        {
-            BattleAction.NextUnit = null;
-            Battle.LocalPlayerTurn = true;
-        }
+ //       if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
+ //       {
+ //           GetNextUnitforLocalPlayer();
+ //           Battle.LocalPlayerTurn = false;
+ //       }
+ //       else
+ //       {
+ //           BattleAction.NextUnit = null;
+ //           Battle.LocalPlayerTurn = true;
+ //       }
 
-        StartUnitTurn ();
-	}
+ //       StartUnitTurn ();
+	//}
 
-	public void StartUnitTurn ()
-	{
-		if (onUnitStartTrun != null)
-			onUnitStartTrun.Invoke ();
-	}
+	//public void StartUnitTurn ()
+	//{
+	//	if (onUnitStartTrun != null)
+	//		onUnitStartTrun.Invoke ();
+	//}
 
 
-	public void EndUnitTurn ()
-	{
-		if (onUnitEndTrun != null)
-			onUnitEndTrun.Invoke ();
-	}
+	//public void EndUnitTurn ()
+	//{
+		
+	//}
 
-    [Command]
-    public void CmdNextUnit ()
-	{
-        RpcNextUnit();
-    }
+ //   [Command]
+ //   public void CmdNextUnit ()
+	//{
+ //       Game.BattleManager.OnUnitEndTrun();
+ //   }
 
-    [ClientRpc]
-    public void RpcNextUnit()
-    {
-        var i = TurnOrder.IndexOf(BattleAction.ActiveUnit);
+ //   [ClientRpc]
+ //   public void RpcNextUnit()
+ //   {
+ //       var i = TurnOrder.IndexOf(BattleAction.ActiveUnit);
 
-        if (i < TurnOrder.Count() - 1)
-        {
-            BattleAction.ActiveUnit = TurnOrder[i + 1];
+ //       if (i < TurnOrder.Count() - 1)
+ //       {
+ //           BattleAction.ActiveUnit = TurnOrder[i + 1];
 
-            if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
-            {
-                GetNextUnitforLocalPlayer();
-                Battle.LocalPlayerTurn = false;
-            }
-            else
-            {
-                BattleAction.NextUnit = null;
-                Battle.LocalPlayerTurn = true;
-            }
+ //           if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
+ //           {
+ //               GetNextUnitforLocalPlayer();
+ //               Battle.LocalPlayerTurn = false;
+ //           }
+ //           else
+ //           {
+ //               BattleAction.NextUnit = null;
+ //               Battle.LocalPlayerTurn = true;
+ //           }
 
-            StartUnitTurn();
-        }
-        else
-        {
-            StartTurn();
-        }
+ //           StartUnitTurn();
+ //       }
+ //       else
+ //       {
+ //           Rpc_StartTurn();
+ //       }
 
         
-    }
+ //   }
 
-    void GetNextUnitforLocalPlayer()
-    {
-        var indexofActiveUnit = TurnOrder.IndexOf(BattleAction.ActiveUnit);
+ //   void GetNextUnitforLocalPlayer()
+ //   {
+ //       var indexofActiveUnit = TurnOrder.IndexOf(BattleAction.ActiveUnit);
 
-        int unitsRemaining = indexofActiveUnit - TurnOrder.Count() + 1;
+ //       int unitsRemaining =  TurnOrder.Count() + 1 - indexofActiveUnit;
 
-        for (int i = 1;i < unitsRemaining; i++ )
-        {
-            int index = indexofActiveUnit + i;
-            var _unit = TurnOrder[index];
+ //       for (int i = 1;i < unitsRemaining; i++ )
+ //       {
+ //           int index = indexofActiveUnit + i;
+ //           var _unit = TurnOrder[index];
 
-            if (_unit.state.Owner == Game.PlayerName)
-            {
-                BattleAction.NextUnit = _unit;
-                return;
-            }
-        }
+ //           if (_unit.state.Owner == Game.PlayerName)
+ //           {
+ //               BattleAction.NextUnit = _unit;
+ //               return;
+ //           }
+ //       }
 
-        for (int i = 0; i < indexofActiveUnit; i++)
-        {
-            int index = i;
-            var _unit = TurnOrder[index];
+ //       for (int i = 0; i < indexofActiveUnit; i++)
+ //       {
+ //           int index = i;
+ //           var _unit = TurnOrder[index];
 
-            if (_unit.state.Owner == Game.PlayerName)
-            {
-                BattleAction.NextUnit = _unit;
-                return;
-            }
-        }
+ //           if (_unit.state.Owner == Game.PlayerName)
+ //           {
+ //               BattleAction.NextUnit = _unit;
+ //               return;
+ //           }
+ //       }
 
-    }
+ //   }
 
 	#region Sorting
-
-	[Command]
-	public  void CmdSortList ()
-	{
-		TurnOrder.Clear ();
-		TurnOrder.AddRange (Battle.AllUnits);
-		SortUnits_Speed (TurnOrder, 0, TurnOrder.Count () - 1);  
-
-		var turnList = new TurnList ();
-		turnList.positions = Game.BattleManager.GetUnitPositions (TurnOrder); 
-		var JSON = JsonUtility.ToJson (turnList);
-
-		RpcUpdateTurnOrder (JSON);
-	}
-
-	[ClientRpc]
-	public void RpcUpdateTurnOrder (string _UnitPostions)
-	{
-		var turnlist = (TurnList)JsonUtility.FromJson<TurnList> (_UnitPostions);
-
-
-		TurnOrder = Game.BattleManager.GetUnitsFromPositions (turnlist.positions);
-		Battle.TurnManager.StartTurn ();
-
-
-	}
-
 
 	int Partition_Speed (List<Unit> list, int left, int right)
 	{
@@ -170,7 +143,7 @@ public class Turn : NetworkBehaviour
 		}
 	}
 
-	void SortUnits_Speed (List<Unit> list, int left, int right)
+	public void SortUnits_Speed (List<Unit> list, int left, int right)
 	{
 		if (left < right)
 		{

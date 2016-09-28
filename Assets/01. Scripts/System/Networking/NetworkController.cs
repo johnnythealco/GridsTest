@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System.Linq;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 
@@ -74,6 +74,7 @@ public class NetworkController :  NetworkBehaviour
             this.BattleReady = _readyStatus;
     }
 
+  
     [Command]
     public void Cmd_SetDeploymentComplete(uint _id, bool _value)
     {
@@ -277,25 +278,119 @@ public class NetworkController :  NetworkBehaviour
 
     #endregion
 
+    #region Battle Turn Management
 
-    #region Battle Actions
-
-    #region Deploy
-
-    public void GetBattleState()
+    [Command]
+    public void Cmd_StartTurn()
     {
-        var _id = this.netId.Value;
-        Cmd_GetBattleState(_id);
+        Rpc_StartTurn();
+    }
+
+    [ClientRpc]
+    public void Rpc_StartTurn()
+    {
+        var TurnOrder = Battle.TurnManager.TurnOrder;
+
+        BattleAction.ActiveUnit = TurnOrder[0];
+
+        if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
+        {
+            GetNextUnitforLocalPlayer();
+            Battle.LocalPlayerTurn = false;
+        }
+        else
+        {
+            BattleAction.NextUnit = null;
+            Battle.LocalPlayerTurn = true;
+        }
+
+        StartUnitTurn();
+    }
+
+    public void StartUnitTurn()
+    {
+        Game.BattleManager.OnUnitStartTrun();
     }
 
     [Command]
-    public void Cmd_GetBattleState(uint _id)
+    public void CmdNextUnit()
     {
-        var _battleState = new BattleState(Game.BattleManager.battleGrid);
-        var JSON = JsonUtility.ToJson(_battleState);
-
-        Rpc_SetBattleState(JSON);
+        Game.BattleManager.OnUnitEndTrun();
     }
+
+    [ClientRpc]
+    public void RpcNextUnit()
+    {
+        var TurnOrder = Battle.TurnManager.TurnOrder;
+
+        var i = TurnOrder.IndexOf(BattleAction.ActiveUnit);
+
+        if (i < TurnOrder.Count() - 1)
+        {
+            BattleAction.ActiveUnit = TurnOrder[i + 1];
+
+            if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
+            {
+                GetNextUnitforLocalPlayer();
+                Battle.LocalPlayerTurn = false;
+            }
+            else
+            {
+                BattleAction.NextUnit = null;
+                Battle.LocalPlayerTurn = true;
+            }
+
+            StartUnitTurn();
+        }
+        else
+        {
+            Cmd_StartTurn();
+        }
+
+
+    }
+
+
+    void GetNextUnitforLocalPlayer()
+    {
+        var TurnOrder = Battle.TurnManager.TurnOrder;
+        var indexofActiveUnit = TurnOrder.IndexOf(BattleAction.ActiveUnit);
+
+        int unitsRemaining = TurnOrder.Count() + 1 - indexofActiveUnit;
+
+        for (int i = 1; i < unitsRemaining; i++)
+        {
+            int index = indexofActiveUnit + i;
+            var _unit = TurnOrder[index];
+
+            if (_unit.state.Owner == Game.PlayerName)
+            {
+                BattleAction.NextUnit = _unit;
+                return;
+            }
+        }
+
+        for (int i = 0; i < indexofActiveUnit; i++)
+        {
+            int index = i;
+            var _unit = TurnOrder[index];
+
+            if (_unit.state.Owner == Game.PlayerName)
+            {
+                BattleAction.NextUnit = _unit;
+                return;
+            }
+        }
+
+    }
+
+
+    #endregion
+
+
+    #region Battle Actions
+
+    #region Deploy 
 
     [ClientRpc]
     public void Rpc_SetBattleState(string _battleStateJSON)
@@ -303,21 +398,23 @@ public class NetworkController :  NetworkBehaviour
         if (Game.isServer)
             return;
 
-            var _battleState = JsonUtility.FromJson<BattleState>(_battleStateJSON);
+        var _battleState = JsonUtility.FromJson<BattleState>(_battleStateJSON);
         Debug.Log("Loading Battle State");
-            Game.BattleManager.battleGrid.LoadState(_battleState);
-        
-    }
+        Game.BattleManager.battleGrid.LoadState(_battleState);
+        Game.BattleManager.RecieveBattleState();
 
-    [ClientRpc]
-    public void Rpc_ServerDeploymentComplete()
-    {
-        if(this.hasAuthority)
+
+
+        int i = 1;
+        Debug.Log("--- Turn Order ----");
+
+        foreach(var _unit in Battle.TurnManager.TurnOrder)
         {
-            GetBattleState();
+            Debug.Log(_unit.DsiplayName + " " + "Position " + i.ToString());
+            i++;
         }
-    }
 
+    }
 
 
     [Command]

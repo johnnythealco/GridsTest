@@ -25,6 +25,23 @@ public class NetManager : NetworkManager
                 
                     } }
 
+    public bool DeploymentComplete
+    {
+        get
+        {
+            foreach (var client in NetworkPlayers)
+            {
+                if (!client.BattleReady || !client.DeploymentComplete)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+
+        }
+    }
+
     public void StartupHost ()
 	{
 		SetPort ();

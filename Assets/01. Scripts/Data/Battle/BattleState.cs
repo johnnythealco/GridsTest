@@ -7,19 +7,21 @@ using JK.Grids;
 public class BattleState
 {
 
-    public List<BattleCellState> Grid;
+    public List<BattleCellState> Units;
+    public List<Vector3> TurnOrder;
 
 
-    public BattleState(BattleGrid _Grid)
+    public BattleState(BattleGrid _Units, List<Vector3> _TurnOrder)
     {
-        this.Grid = new List<BattleCellState>();
-        var _cells = _Grid.Grid.Values;
+        this.Units = new List<BattleCellState>();
+        this.TurnOrder = _TurnOrder;
+        var _cells = _Units.Grid.Values;
 
         foreach(var _cell in _cells)
         {
             if (_cell.isAccessible == false)
             {
-                this.Grid.Add(new BattleCellState(_cell));
+                this.Units.Add(new BattleCellState(_cell));
             }
         }
     }

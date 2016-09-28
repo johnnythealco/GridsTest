@@ -116,7 +116,7 @@ public class BattleAction : MonoBehaviour
 		case "End Turn":
 			{ 
 				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
-				Battle.TurnManager.EndUnitTurn ();
+                Game.NetworkController.CmdNextUnit();
 			}
 			break;
 		}

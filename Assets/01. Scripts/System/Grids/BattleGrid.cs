@@ -268,20 +268,27 @@ namespace JK
 				}
 			}
 
-			#endregion
+            #endregion
 
-			#region Utility Methods
+            #region Utility Methods
 
             public void LoadState(BattleState _BattleState)
             {
-                foreach(var _cellState in _BattleState.Grid)
+                foreach (var _cellState in _BattleState.Units)
                 {
                     var _point = Map[_cellState.position];
                     var _cell = Grid[_point];
                     _cell.SetState(_cellState);
                 }
-            }
 
+                foreach (var _point in _BattleState.TurnOrder)
+                {
+                    var _cell = Game.BattleManager.battleGrid.GetCell(_point);
+                    Battle.TurnManager.TurnOrder.Add(_cell.unit);
+
+                }
+            }
+         
 
 			public BattleCell GetCell (Vector3 _point)
 			{
