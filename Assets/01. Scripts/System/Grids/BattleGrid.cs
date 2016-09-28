@@ -98,6 +98,7 @@ namespace JK
 
 					cell.name = point.ToString ();
 					Grid [point] = cell;
+                    
 
 
 				}
@@ -270,6 +271,16 @@ namespace JK
 			#endregion
 
 			#region Utility Methods
+
+            public void LoadState(BattleState _BattleState)
+            {
+                foreach(var _cellState in _BattleState.Grid)
+                {
+                    var _point = Map[_cellState.position];
+                    var _cell = Grid[_point];
+                    _cell.SetState(_cellState);
+                }
+            }
 
 
 			public BattleCell GetCell (Vector3 _point)

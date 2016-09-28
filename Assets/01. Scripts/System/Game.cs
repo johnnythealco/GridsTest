@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -78,6 +78,20 @@ public class Game : MonoBehaviour
             }
         }       
   
+    }
+
+
+    public static Unit CreateUnit(UnitState _state)
+    {
+       
+        var _Template = Register.GetUnitType(_state.UnitType);
+
+        var _unit = (Unit)Instantiate(_Template);
+        _unit.setUnitState(_state);
+        _unit.selectedWeapon = _unit.Weapons.First();
+        _unit.selectedAction = _unit.Actions.First();
+
+        return _unit;
     }
 
 

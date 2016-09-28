@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using JK.Grids;
 using System.Linq;
-
+using System;
+using System.Collections;
 
 public class Battle : MonoBehaviour
 {
@@ -69,43 +70,76 @@ public class Battle : MonoBehaviour
         selectedTargetCursor.gameObject.SetActive(false);
         gridCursor.gameObject.SetActive(false);
 
-        Game.NetworkManager.onAllPlayersReady += onAllPlayersReady;
-
-
-
+        if (Game.isServer)
+        {
+            ServerStartBattle();
+        }
+        else
+        {
+            ClientStartBattle();
+        }
     }
 
-    private void onAllPlayersReady()
-    {
-        Debug.Log("All Players Ready");
-        Debug.Log("Starting Battle..");
 
-        for(int i = 0;i < Game.Manager.Players.Count();i++)
+    public void ServerStartBattle()
+    {
+        if (!Game.isServer)
+            return;
+
+        for (int i = 0; i < Game.Manager.Players.Count(); i++)
         {
             var _Player = Game.Manager.Players[i];
             var _DeploymentArea = BattleGrid.DeploymentAreas[i];
             if (Game.isServer)
             {
                 Debug.Log("Deploying Fleet for " + _Player.Name);
-                BattleAction.RandomDeploy(_Player.fleet.Units,_DeploymentArea);
+                BattleAction.RandomDeploy(_Player.fleet.Units, _DeploymentArea);
             }
         }
 
-        foreach(var _player in Game.Manager.Players)
+        foreach (var _player in Game.Manager.Players)
         {
-            var JSON = JsonUtility.ToJson(_player);
-            Game.NetworkController.CmdDeploy(JSON);
+            foreach (var _unitState in _player.fleet.Units)
+            {
+                var _Unit = Game.CreateUnit(_unitState);
+                _Unit.transform.position = _unitState.Position;
+                battleGrid.RegisterUnit(_unitState.Position, _Unit, CellContents.unit);
+            }
         }
+
+        Game.NetworkController.BattleReady = true;
+        Game.NetworkController.DeploymentComplete = true;
+       StartCoroutine(  WaitforCleints_LoadBattle());
+
 
     }
 
-    void Update()
+    public void ClientStartBattle()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
-        {
-            StartBattle();
-        }
+        if (Game.isServer)
+            return;
+        var _id = Game.NetworkController.netId.Value;
+
+        Game.NetworkController.Cmd_SetBattleReady(_id, true);
+
     }
+
+    IEnumerator WaitforCleints_LoadBattle()
+    {
+
+        while (!Game.NetworkManager.AllPlayersReady)
+        {
+            JKLog.Log("Waiting for Network Players!");
+            yield return new WaitForSeconds(1);
+
+        }
+        JKLog.Log("All Players Ready!");
+        var _BattleState = new BattleState(Game.BattleManager.battleGrid);
+        var JSON = JsonUtility.ToJson(_BattleState);
+        Game.NetworkController.Rpc_SetBattleState(JSON);
+        
+    }
+
 
 
     #endregion
@@ -235,13 +269,7 @@ public class Battle : MonoBehaviour
 	{
 		
 	}
-
-	public void StartBattle ()
-	{
-         Debug.Log("All Player Ready Starting Battle");
-        Battle.TurnManager.CmdSortList();
-    }
-
+    
     public void Action_Click()
     {
         if (!LocalPlayerTurn)

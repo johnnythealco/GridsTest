@@ -78,8 +78,17 @@ public class BattleSetup : MonoBehaviour {
 
     public void Start_Battle()
     {
-        Game.NetworkController.Cmd_SetAllPlayersNotReady();
-        Game.NetworkController.Cmd_LoadScene("Battle");
+        if (!Game.isServer)
+            return;
+
+        foreach(var client in Game.NetworkManager.NetworkPlayers)
+        {
+            client.BattleReady = false;
+            client.DeploymentComplete = false;
+        }
+        
+
+        Game.NetworkManager.LoadScene("Battle");
 
 
     }

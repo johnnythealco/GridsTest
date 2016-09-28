@@ -39,12 +39,9 @@ public class BattleAction : MonoBehaviour
 		}
 		return false;
 	}
-    
-    public static bool DeployUnit(UnitState _unit, Vector3 _position)
-    {
-        if (Game.BattleManager == null)
-            return false;
-
+           
+    public static void DeployUnit(UnitState _unit, Vector3 _position)
+    {  
         var battleManager = Game.BattleManager;
         var BattleGrid = battleManager.battleGrid;
 
@@ -60,11 +57,8 @@ public class BattleAction : MonoBehaviour
         //Register on BattelGrid
         BattleGrid.RegisterUnit(_position, unitModel, CellContents.unit);
 
-
-        JKLog.Log(_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString());
-
-        return true;
     }
+
     public static void DeployPlayerFleet(Player _player)
     {
     

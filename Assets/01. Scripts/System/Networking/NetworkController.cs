@@ -4,15 +4,20 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 
 public class NetworkController :  NetworkBehaviour
-{	
-	
-	#region Setup and Network Management
+{
+    [SyncVar]
+    public bool BattleReady;
 
-	void Awake ()
+    [SyncVar]
+    public bool DeploymentComplete;
+
+
+    #region Setup and Network Management
+
+    void Awake ()
 	{
-
         DontDestroyOnLoad (this.gameObject);
-
+        Game.NetworkManager.NetworkPlayers.Add(this);
      }
 
     void Start()
@@ -61,6 +66,20 @@ public class NetworkController :  NetworkBehaviour
 			NetworkManager.singleton.StopClient ();
 		}
 	}
+
+    [Command]
+    public void Cmd_SetBattleReady(uint _id, bool _readyStatus)
+    {
+        if (this.netId.Value == _id)
+            this.BattleReady = _readyStatus;
+    }
+
+    [Command]
+    public void Cmd_SetDeploymentComplete(uint _id, bool _value)
+    {
+        if (this.netId.Value == _id)
+            this.DeploymentComplete = _value;
+    }
 
     #endregion
 
@@ -136,6 +155,8 @@ public class NetworkController :  NetworkBehaviour
     #endregion
 
     #region Ready Status
+
+
     [Command]
     public void Cmd_PlayerChangeReadyStatus(uint _id, bool _readyStatus)
     {
@@ -215,11 +236,6 @@ public class NetworkController :  NetworkBehaviour
     }
 
 
-
-
-   
-
-
     #endregion
 
     #region Fleet
@@ -261,23 +277,48 @@ public class NetworkController :  NetworkBehaviour
 
     #endregion
 
-    #region Scene Management
-
-    [Command]
-    public void Cmd_LoadScene(string _SceneName)
-    {
-        Game.NetworkManager.LoadScene(_SceneName);
-    }
-
-
-    #endregion
-
 
     #region Battle Actions
 
     #region Deploy
 
- 
+    public void GetBattleState()
+    {
+        var _id = this.netId.Value;
+        Cmd_GetBattleState(_id);
+    }
+
+    [Command]
+    public void Cmd_GetBattleState(uint _id)
+    {
+        var _battleState = new BattleState(Game.BattleManager.battleGrid);
+        var JSON = JsonUtility.ToJson(_battleState);
+
+        Rpc_SetBattleState(JSON);
+    }
+
+    [ClientRpc]
+    public void Rpc_SetBattleState(string _battleStateJSON)
+    {
+        if (Game.isServer)
+            return;
+
+            var _battleState = JsonUtility.FromJson<BattleState>(_battleStateJSON);
+        Debug.Log("Loading Battle State");
+            Game.BattleManager.battleGrid.LoadState(_battleState);
+        
+    }
+
+    [ClientRpc]
+    public void Rpc_ServerDeploymentComplete()
+    {
+        if(this.hasAuthority)
+        {
+            GetBattleState();
+        }
+    }
+
+
 
     [Command]
 	public void CmdDeploy (string _Player)
@@ -304,8 +345,7 @@ public class NetworkController :  NetworkBehaviour
 	[ClientRpc]
 	public void RpcBattleAction (string _type, Vector3 _target, string _param)
 	{
-        BattleAction.Execute(_type, _target, _param);
-        
+        BattleAction.Execute(_type, _target, _param);        
 
 	}
 
