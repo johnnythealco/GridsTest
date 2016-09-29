@@ -15,16 +15,12 @@ public class Battle : MonoBehaviour
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
 	public CameraCTRL cameraCTRL;
-    public Turn turnManager;
+    
     #endregion
 
     #region Properties
 
     public BattleGrid battleGrid{ get; set; }
-
-	public static Turn TurnManager{ get; set; }
-
-	public static Unit SelectedUnit{ get; set; }
 
 	public static List<Unit> AllUnits{ get; set; }
 
@@ -49,13 +45,7 @@ public class Battle : MonoBehaviour
             Game.NetworkController.Cmd_EndTurn();
     }
 
-    void Awake()
-    {
-        TurnManager = turnManager;
-
-
-    }
-
+   
 	void Start ()
 	{
         Game.BattleManager = this;
@@ -588,9 +578,37 @@ public class Battle : MonoBehaviour
 
         return _cell.unit;
     }
+
+    //bool CheckIfGameOver(out string playerName)
+    //{
+    //    List<string> remainingPlayers = new List<string>();
+
+    //    foreach(var unit in AllUnits)
+    //    {
+    //        if (!remainingPlayers.Contains(unit.state.Owner))
+    //            remainingPlayers.Add(unit.state.Owner);             
+
+    //    }
+
+    //    if(remainingPlayers.Count() == 1)
+    //    {
+            
+    //        return true;
+    //    }
+    //    else
+    //    {
+    //        return false;
+    //    }
+    //}
     
     #endregion
 
 
 }
 
+[System.Serializable]
+public class TurnList
+{
+    public List<Vector3> positions;
+
+}

@@ -205,7 +205,7 @@ public class UnitModelDisplay : MonoBehaviour
 	{
 		unit.selectedWeapon = _weapon.name;
 		highlightSelectedWeapon ();
-        BattleAction.GetLegalTargets(_weapon.name);
+        BattleAction.GetLegalTargets("Attack");
 
         if (APCost != null)
             APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
