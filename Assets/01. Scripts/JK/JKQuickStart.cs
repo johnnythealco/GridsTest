@@ -7,13 +7,8 @@ public class JKQuickStart : MonoBehaviour
 
 	// Use this for initialization
 	void Start ()
-	{
-		networkManagerUI.nameInput.text = "JK";
-		networkManagerUI.SetPlayerName ();
-		networkManagerUI.EnableButtons ();
-		networkManagerUI.StartHost ();
-		
-	
+	{		
+		networkManagerUI.QuickBattle ();	
 	}
 	
 

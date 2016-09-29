@@ -284,7 +284,7 @@ namespace JK
                 foreach (var _point in _BattleState.TurnOrder)
                 {
                     var _cell = Game.BattleManager.battleGrid.GetCell(_point);
-                    Battle.TurnManager.TurnOrder.Add(_cell.unit);
+                    Battle.AllUnits.Add(_cell.unit);
 
                 }
             }

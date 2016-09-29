@@ -8,8 +8,6 @@ public class BattleAction : MonoBehaviour
 {
     #region Properties
 
-    public static Unit ActiveUnit { get; set; }
-
     public static List<Vector3> LegalMoves{ get; set; }
 
 	public static List<Vector3> LegalTargets{ get; set; }
@@ -21,8 +19,6 @@ public class BattleAction : MonoBehaviour
     public static Vector3 MoveDestination { get; set; }
 
     public static List<Vector3> MovePath { get; set; }
-
-    public static Unit NextUnit;
 
     #endregion
 
@@ -88,8 +84,6 @@ public class BattleAction : MonoBehaviour
 
     public static void Action_Click (string _action)
 	{
-		var _ActiveUnit = BattleAction.ActiveUnit;
-
 		switch (_action)
 		{
 		case "Move":
@@ -104,23 +98,24 @@ public class BattleAction : MonoBehaviour
                         return;
 
                     var _Target = ActiveTarget.transform.position;
-                    var _Weapon = ActiveUnit.selectedWeapon;
+                    var _Weapon = Game.BattleManager.ActiveUnit.selectedWeapon;
                     Game.NetworkController.CmdBattleAction("Attack", _Target, _Weapon);
                 }
 			break;
 		case "Evade":
 			{
-				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction); 
+				JKLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction); 
 			}
 			break;
 		case "End Turn":
 			{ 
-				Debug.Log (_ActiveUnit.DsiplayName + " " + _ActiveUnit.selectedAction);
-                Game.NetworkController.CmdNextUnit();
+				JKLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction);
+                Game.NetworkController.Cmd_EndTurn();
 			}
 			break;
 		}
 	}
+    
 
     #endregion
 
@@ -154,19 +149,19 @@ public class BattleAction : MonoBehaviour
 		var BattleGrid = battleManager.battleGrid;
 
 	
-        var _start = ActiveUnit.transform.position;
+        var _start = Game.BattleManager.ActiveUnit.transform.position;
 		var path = BattleGrid.getGridPath (_start, _end);
 
 		foreach (var step in path)
 		{
-			BattleGrid.UnRegisterObject (ActiveUnit.transform.position);
-			BattleGrid.RegisterUnit (step, ActiveUnit, CellContents.unit);
-            ActiveUnit.transform.position = step;
-			JKLog.Log (ActiveUnit.faction + " " + ActiveUnit.DsiplayName + " Move to " + step.ToString ());
+			BattleGrid.UnRegisterObject (Game.BattleManager.ActiveUnit.transform.position);
+			BattleGrid.RegisterUnit (step, Game.BattleManager.ActiveUnit, CellContents.unit);
+            Game.BattleManager.ActiveUnit.transform.position = step;
+			JKLog.Log (Game.BattleManager.ActiveUnit.faction + " " + Game.BattleManager.ActiveUnit.DsiplayName + " Move to " + step.ToString ());
 		}
 
         battleManager.ClearPathSteps();
-        GetLegalMoves(ActiveUnit);
+        GetLegalMoves(Game.BattleManager.ActiveUnit);
         GetLegalTargets("Attack");
 
 		return true;
@@ -199,14 +194,31 @@ public class BattleAction : MonoBehaviour
 		return true;
 	}
 
-	
-
-	#endregion
 
 
-	#region Range and Target Methods
+    #endregion
 
-	public static void GetLegalMoves (Unit _unit)
+    #region Action Information
+    public static int GetAPCost(string _action)
+    {
+        switch (_action)
+        {
+            case "Attack":
+                {
+                    return Game.Register.GetWeaponAPcost(Game.BattleManager.ActiveUnit.selectedWeapon);
+                }                
+            default:
+                {
+                    return Game.Register.GetActionAPCost(_action);
+                }              
+        }
+    }
+
+    #endregion
+
+    #region Range and Target Methods
+
+    public static void GetLegalMoves (Unit _unit)
 	{
 		BattleAction.LegalMoves = Game.BattleManager.battleGrid.GetRange (_unit.transform.position, _unit.Engines); 
 
@@ -216,7 +228,7 @@ public class BattleAction : MonoBehaviour
     {
 
         var _TargetType = Game.Register.GetActionTargetType(_Action);
-        var _source = ActiveUnit.transform.position; 
+        var _source = Game.BattleManager.ActiveUnit.transform.position; 
 
         if (LegalTargets == null)
             LegalTargets = new List<Vector3>();
@@ -225,7 +237,7 @@ public class BattleAction : MonoBehaviour
 
         if (_TargetType == TargetType.self)
         {
-            LegalTargets.Add(ActiveUnit.transform.position);
+            LegalTargets.Add(Game.BattleManager.ActiveUnit.transform.position);
             return;
         }
 
@@ -234,7 +246,7 @@ public class BattleAction : MonoBehaviour
 
         if (_Action == "Attack")
         {
-            var _selectedWeapon = ActiveUnit.selectedWeapon;
+            var _selectedWeapon = Game.BattleManager.ActiveUnit.selectedWeapon;
             _range = Game.Register.GetWeapon(_selectedWeapon).range;
         }
         else

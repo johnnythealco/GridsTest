@@ -16,7 +16,8 @@ public class UnitState
 	public ArmourType armourType { get { return Game.Register.GetUnitType (UnitType).ArmourType; } }
 
 	public int AP;
-	public int speed;
+    public int Max_AP;
+    public int speed;
 	public int armour;
 	public int sheilds;
 	public int engines;
@@ -37,7 +38,8 @@ public class UnitState
 		this.weapons = _type.Weapons;
 		this.actions = _type.Actions;
 		this.armour = _type.Armour;
-	}
+        this.Max_AP = _type.AP * 2;
+    }
 
 
 }
@@ -49,7 +51,7 @@ public class Weapon
 	public string name;
 	public Sprite icon;
 	public int range = 1;
-	public int APcost;
+	public int APcost = 1;
 	public int accuracy = 1;
 	public int damage = 10;
 	public DamageType damageType;
@@ -63,6 +65,7 @@ public class UnitAction
 {
 	public string name;
     public int range;
+    public int APCost;
 	public Sprite icon;
 	public TargetType targetType;
 

@@ -10,6 +10,7 @@ public class Battle : MonoBehaviour
     #region Variables
 
     #region public
+    public Unit ActiveUnit;
     public BattleGrid flatHexPrefab;
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
@@ -41,6 +42,12 @@ public class Battle : MonoBehaviour
     #endregion
 
     #region Start & Update
+
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space))
+            Game.NetworkController.Cmd_EndTurn();
+    }
 
     void Awake()
     {
@@ -89,7 +96,6 @@ public class Battle : MonoBehaviour
             var _DeploymentArea = BattleGrid.DeploymentAreas[i];
             if (Game.isServer)
             {
-                Debug.Log("Deploying Fleet for " + _Player.Name);
                 BattleAction.RandomDeploy(_Player.fleet.Units, _DeploymentArea);
             }
         }
@@ -98,19 +104,18 @@ public class Battle : MonoBehaviour
         {
             foreach (var _unitState in _player.fleet.Units)
             {
-                var _Unit = Game.CreateUnit(_unitState);
+                var _Unit = CreateUnit(_unitState);
                 _Unit.transform.position = _unitState.Position;
                 battleGrid.RegisterUnit(_unitState.Position, _Unit, CellContents.unit);
             }
         }
 
-        var _TurnOrder = TurnManager.TurnOrder;
-        _TurnOrder.AddRange(AllUnits);
-        TurnManager.SortUnits_Speed(_TurnOrder, 0, _TurnOrder.Count() - 1);
+       SortUnits_Speed(AllUnits, 0, AllUnits.Count() - 1);
 
-       Game.NetworkController.BattleReady = true;
-       Game.NetworkController.DeploymentComplete = true;
-       StartCoroutine(  WaitforCleints_LoadBattleState());
+
+
+       StartCoroutine(WaitforCleints_LoadBattleState());
+    
     }
     
     public void Client_SetupBattleState()
@@ -126,6 +131,14 @@ public class Battle : MonoBehaviour
 
     IEnumerator WaitforCleints_LoadBattleState()
     {
+        int i = 1;
+        while (i<2)
+        {
+            yield return new WaitForSeconds(1);
+            i++;
+        }
+        Game.NetworkController.BattleReady = true;
+        Game.NetworkController.DeploymentComplete = true;
 
         while (!Game.NetworkManager.AllPlayersReady)
         {
@@ -133,9 +146,16 @@ public class Battle : MonoBehaviour
             yield return new WaitForSeconds(1);
 
         }
-        JKLog.Log("All Players Ready!");
 
-        SendBattleState();
+        JKLog.Log("All Players Ready!");
+        if (Game.isMultiplayer)
+        {
+            SendBattleState();
+        }
+        else
+        {
+            StartTurn();
+        }
 
 
     }
@@ -150,16 +170,13 @@ public class Battle : MonoBehaviour
 
         }
         JKLog.Log("Deployment Complete");
-
-        Game.NetworkController.Rpc_StartTurn();
-
-
+        StartTurn();
     }
 
 
     void SendBattleState()
     {
-        var _TurnOrder = TurnManager.TurnOrder;
+        var _TurnOrder = AllUnits;
         var turnList = new TurnList();
         turnList.positions = Game.BattleManager.GetUnitPositions(_TurnOrder);
 
@@ -181,7 +198,7 @@ public class Battle : MonoBehaviour
 
     #region Event handlers 
 
-
+    #region Mouse Input
     void BattleGrid_onRightClickCell (Vector3 _point)
 	{
 
@@ -221,18 +238,18 @@ public class Battle : MonoBehaviour
             BattleAction.MoveDestination = _point;
             highlightMovePath();
 
-            if (BattleAction.ActiveUnit.selectedAction == "Attack")
-                BattleAction.ActiveUnit.selectedAction = ("Move");
+            if (Game.BattleManager.ActiveUnit.selectedAction == "Attack")
+                Game.BattleManager.ActiveUnit.selectedAction = ("Move");
                 return;
         }
 
 
         if (BattleAction.LegalTargets.Contains(_point))
         {
-            if(BattleAction.ActiveUnit.selectedAction == "Move")            
-                BattleAction.ActiveUnit.selectedAction = ("Attack");
+            if(Game.BattleManager.ActiveUnit.selectedAction == "Move")            
+                Game.BattleManager.ActiveUnit.selectedAction = ("Attack");
             
-            unitDisplay.Prime(BattleAction.ActiveUnit);
+            unitDisplay.Prime(Game.BattleManager.ActiveUnit);
             BattleAction.ActiveTarget = battleGrid.GetCell(_point).unit;
             selectedTargetCursor.transform.position = _point;
             selectedTargetCursor.gameObject.SetActive(true);
@@ -241,7 +258,7 @@ public class Battle : MonoBehaviour
 
         if (!BattleAction.LegalMoves.Contains(_point))
         {
-            BattleAction.MoveDestination = BattleAction.ActiveUnit.transform.position;
+            BattleAction.MoveDestination = Game.BattleManager.ActiveUnit.transform.position;
             if (PathSteps.Count() > 0)
                 ClearPathSteps();         
         }
@@ -265,41 +282,70 @@ public class Battle : MonoBehaviour
 		gridCursor.gameObject.SetActive (false);
 
 	}
-    	
-	public void OnUnitStartTrun ()
+    #endregion
+
+    void StartTurn()
+    {       
+        ActiveUnit = AllUnits[0];
+        var _unitPosition = ActiveUnit.transform.position;
+        Game.NetworkController.Rpc_StartUnitTurn(_unitPosition);
+    }
+
+    public void OnUnitStartTrun (Vector3 _unitPosition)
 	{
+        ClearActiveUnit();
+        ClearPathSteps();
+        var _unit = GetUnit(_unitPosition);
+        ActiveUnit = _unit;     
+        LocalPlayerTurn = _unit.state.Owner == Game.PlayerName;
+
+        if(_unit.state.AP < _unit.state.Max_AP)
+        {
+            _unit.state.AP = _unit.state.AP + _unit.AP;
+            if(_unit.state.AP > _unit.state.Max_AP)
+            {
+                _unit.state.AP = _unit.state.Max_AP;
+            }
+        }
+
+
         if (LocalPlayerTurn)
         {
 
-            var _point = BattleAction.ActiveUnit.transform.position;
+            var _point = Game.BattleManager.ActiveUnit.transform.position;
 
-            BattleAction.GetLegalMoves(BattleAction.ActiveUnit);
+            BattleAction.GetLegalMoves(ActiveUnit);
             BattleAction.GetLegalTargets("Attack");
-
-            unitDisplay.Prime(BattleAction.ActiveUnit);
+            unitDisplay.Prime(ActiveUnit);
             unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
-            selectedUnitCursor.gameObject.SetActive(true);
-            selectedUnitCursor.color = Color.blue;
-            selectedUnitCursor.transform.position = _point;
-            selectedUnitCursor.transform.SetParent(BattleAction.ActiveUnit.transform);
+            highlightActiveUnit(_point);
             cameraCTRL.CentreOn(_point);
         }
         else
         {
-            var _point = BattleAction.NextUnit.transform.position;
-            unitDisplay.Prime(BattleAction.NextUnit);
-            cameraCTRL.CentreOn(_point);
-        }
-
-       
+            var _nextUnit = GetNextUnitforLocalPlayer();
+            unitDisplay.Prime(_nextUnit);
+            cameraCTRL.CentreOn(_nextUnit.transform.position);
+        }       
     }
 
 	public void OnUnitEndTrun ()
 	{
-        Game.NetworkController.RpcNextUnit();
-	}
+        var i = AllUnits.IndexOf(ActiveUnit);
 
-	void ActiveUnit_onChangeAction ()
+        if (i < AllUnits.Count()-1)
+        {
+            ActiveUnit = AllUnits[i + 1];
+            var _unitPosition = ActiveUnit.transform.position;
+            Game.NetworkController.Rpc_StartUnitTurn(_unitPosition);
+        }
+        else
+        {
+            StartTurn();
+        }
+    }
+
+    void ActiveUnit_onChangeAction ()
 	{
 		
 	}
@@ -309,7 +355,7 @@ public class Battle : MonoBehaviour
         if (!LocalPlayerTurn)
             return;
 
-        var _selectedAction = BattleAction.ActiveUnit.selectedAction;
+        var _selectedAction = Game.BattleManager.ActiveUnit.selectedAction;
 
         if (_selectedAction != null || _selectedAction != "")
         {
@@ -320,10 +366,16 @@ public class Battle : MonoBehaviour
     }
 
     #endregion
-
-
-
+    
     #region Highlighting
+
+    void highlightActiveUnit(Vector3 _point)
+    {
+        selectedUnitCursor.gameObject.SetActive(true);
+        selectedUnitCursor.color = Color.blue;
+        selectedUnitCursor.transform.position = _point;
+        selectedUnitCursor.transform.SetParent(GetUnit(_point).transform);
+    }
 
     void highlightEmptyCell (Vector3 _point)
 	{
@@ -345,7 +397,7 @@ public class Battle : MonoBehaviour
 	{
         gridCursor.transform.position = _point;
         gridCursor.gameObject.SetActive(true);
-        gridCursor.color = Color.red;
+        gridCursor.color = Color.yellow;
 	}
 
 	void highlightEnemy (Vector3 _point)
@@ -366,10 +418,10 @@ public class Battle : MonoBehaviour
     {
         ClearPathSteps();
 
-        if (BattleAction.ActiveUnit == null)
+        if (Game.BattleManager.ActiveUnit == null)
             return;
 
-        var start = BattleAction.ActiveUnit.transform.position;
+        var start = Game.BattleManager.ActiveUnit.transform.position;
         var end = BattleAction.MoveDestination;
         BattleAction.MovePath = battleGrid.getGridPath(start, end);
 
@@ -382,6 +434,11 @@ public class Battle : MonoBehaviour
         }
         
 
+    }
+
+    void ClearActiveUnit()
+    {
+        selectedUnitCursor.gameObject.SetActive(false);
     }
 
     public void ClearPathSteps()
@@ -405,10 +462,36 @@ public class Battle : MonoBehaviour
     }
 
 
+
+
     #endregion
 
 
     #region Utility Functions
+
+    public Unit CreateUnit(UnitState _state)
+    {
+
+        var _Template = Game.Register.GetUnitType(_state.UnitType);
+
+        var _unit = (Unit)Instantiate(_Template);
+        _unit.setUnitState(_state);
+        _unit.selectedWeapon = _unit.Weapons.First();
+        _unit.selectedAction = _unit.Actions.First();
+
+        var unitBorder = Instantiate(cellBorder) as SpriteRenderer;
+        unitBorder.gameObject.SetActive(true);
+        unitBorder.transform.position = _unit.transform.position;
+        unitBorder.transform.SetParent(_unit.transform);
+
+        if (_unit.state.Owner == Game.PlayerName)
+            unitBorder.color = Color.grey;
+        else
+            unitBorder.color = Color.red;
+
+
+        return _unit;
+    }
 
     public List<Unit> GetUnitsFromPositions (List<Vector3> _positions)
 	{
@@ -441,28 +524,73 @@ public class Battle : MonoBehaviour
 
 	}
 
+    int Partition_Speed(List<Unit> list, int left, int right)
+    {
+        Unit pivot = list[left];
 
-	#endregion
+        while (true)
+        {
+            while (list[left].Speed > pivot.Speed)
+                left++;
+
+            while (list[right].Speed < pivot.Speed)
+                right--;
+
+            if (list[right].Speed == pivot.Speed && list[left].Speed == pivot.Speed)
+                left++;
+
+            if (left < right)
+            {
+                Unit temp = list[left];
+                list[left] = list[right];
+                list[right] = temp;
+            }
+            else
+            {
+                return right;
+            }
+        }
+    }
+
+    void SortUnits_Speed(List<Unit> list, int left, int right)
+    {
+        if (left < right)
+        {
+            int pivotIdx = Partition_Speed(list, left, right);
+
+            if (pivotIdx > 1)
+                SortUnits_Speed(list, left, pivotIdx - 1);
+
+            if (pivotIdx + 1 < right)
+                SortUnits_Speed(list, pivotIdx + 1, right);
+        }
+
+    }
+
+    Unit GetNextUnitforLocalPlayer()
+    {
+        foreach (var _unit in AllUnits)
+        {
+            if (_unit.state.Owner == Game.PlayerName)
+                return _unit;    
+        }
+
+        return null;
+
+    }
+
+    Unit GetUnit(Vector3 _position)
+    {
+        var _cell = battleGrid.GetCell(_position);
+
+        if (_cell.contents != CellContents.unit)
+            return null;
+
+        return _cell.unit;
+    }
+    
+    #endregion
 
 
 }
 
-#region Enums
-
-public enum BattleContext
-{
-	nothing_selected = 0,
-	unit_default = 1,
-	Deployment = 2,
-	unit_Action = 3
-}
-
-public enum HightlightedContext
-{
-	nothing = 0,
-	unit = 1,
-	enemy = 2,
-	target = 3,
-	move = 4
-}
-#endregion

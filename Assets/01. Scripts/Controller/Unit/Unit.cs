@@ -56,7 +56,7 @@ public class Unit : MonoBehaviour
     {
         get
         {
-            if (this == BattleAction.ActiveUnit && this.state.Owner == Game.PlayerName)
+            if (this == Game.BattleManager.ActiveUnit && this.state.Owner == Game.PlayerName)
                 return TargetType.self;
 
             if (this.state.Owner == Game.PlayerName)

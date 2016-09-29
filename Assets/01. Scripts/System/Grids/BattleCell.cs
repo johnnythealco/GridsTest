@@ -25,7 +25,7 @@ namespace JK
                 this.contents = _state.context;
                 if(_state.unit != null)
                 {
-                    this.unit = Game.CreateUnit(_state.unit);
+                    this.unit = Game.BattleManager.CreateUnit(_state.unit);
                     this.unit.transform.position = this.transform.position;
                 }
             }

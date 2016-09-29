@@ -86,7 +86,12 @@ public class BattleSetup : MonoBehaviour {
             client.BattleReady = false;
             client.DeploymentComplete = false;
         }
-        
+
+        if (Game.NetworkManager.NetworkPlayers.Count() > 1)
+            Game.isMultiplayer = true;
+        else
+            Game.isMultiplayer = false;
+
 
         Game.NetworkManager.LoadScene("Battle");
 

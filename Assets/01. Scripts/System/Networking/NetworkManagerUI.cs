@@ -29,6 +29,25 @@ public class NetworkManagerUI :  MonoBehaviour
 		}
 	}
 
+    public void QuickBattle()
+    {
+        Game.NetworkManager.onlineScene = "Battle";
+        Game.PlayerName = "Player";
+        var _player = new Player("Player", 0u, true);
+        Game.Manager.Players.Add(_player);
+        var _enemy = new Player("Enemy", 0u, true);
+        Game.Manager.Players.Add(_enemy);
+
+        foreach(var player in Game.Manager.Players)
+        {
+            var _units = BattleSetup.CreateUnits(Game.Manager.BasicFleet, player.Name);
+            var _fleet = new FleetState(player.Name, "Basic Fleet", _units);
+            player.fleet = _fleet;
+        }
+        Game.NetworkManager.StartupHost();
+
+    }
+
 
 	public void StartHost ()
 	{

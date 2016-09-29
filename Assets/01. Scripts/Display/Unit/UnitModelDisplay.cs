@@ -7,11 +7,14 @@ using System.Linq;
 
 public class UnitModelDisplay : MonoBehaviour
 {
-	
-	public Text UnitName;
+    public Button ActionButton;
+    public Button Next_ActionButton;
+    public Button Prev_ActionButton;
+    public Text UnitName;
 	public Image ActionIcon;
-
-	public Text Action;
+	public Text ActionName;
+    public Text currentAP;
+    public Text APCost;
 
 	public Text Armour;
 	public Text Shields;
@@ -20,6 +23,9 @@ public class UnitModelDisplay : MonoBehaviour
 
 	Unit unit;
 	List<WeaponDisplay> weaponDisplays = new List<WeaponDisplay> ();
+
+    int actionPoints;
+    int actionPointCost;
 
 	#region Delegates & Events
 
@@ -33,7 +39,8 @@ public class UnitModelDisplay : MonoBehaviour
 	public void Prime (Unit _unitModel)
 	{
 		unit = _unitModel;
-		clearWeaponDisplays ();
+        
+        clearWeaponDisplays ();
 
 		if (unit.selectedWeapon == null || unit.selectedWeapon == "")
 			unit.selectedWeapon = unit.Weapons.First ();
@@ -45,17 +52,21 @@ public class UnitModelDisplay : MonoBehaviour
 
 		if (UnitName != null)
 			UnitName.text = unit.DsiplayName;
-		if (Action != null)
-			Action.text = unit.selectedAction;
+		if (ActionName != null)
+			ActionName.text = unit.selectedAction;
 		if (ActionIcon != null)
 			ActionIcon.sprite = _selectedActionIcon;
+        if (currentAP != null)
+            currentAP.text = unit.state.AP.ToString();
+        if (APCost != null)
+            APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
+
+
+
 		if (Armour != null)
 			Armour.text = unit.Armour.ToString ();
 		if (Shields != null)
 			Shields.text = unit.Sheilds.ToString ();
-
-
-
 
 
 		if (weaponsPanel != null)
@@ -72,8 +83,47 @@ public class UnitModelDisplay : MonoBehaviour
 
 			highlightSelectedWeapon ();
 		}
+        actionPoints = unit.state.AP;
+        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
+        checkAP();
 
-	}
+
+        if (!Battle.LocalPlayerTurn)
+        {
+            ActionName.text = "Waiting";
+            ActionButton.interactable = false;
+            Next_ActionButton.interactable = false;
+            Prev_ActionButton.interactable = false;
+        }
+        else
+        {
+            Next_ActionButton.interactable = true;
+            Prev_ActionButton.interactable = true;
+
+        }
+
+    }
+
+    public void ActionClick()
+    {
+        if (!Battle.LocalPlayerTurn)
+            return;
+
+        var _selectedAction = unit.selectedAction;
+
+        if (_selectedAction != null || _selectedAction != "")
+        {
+            BattleAction.Action_Click(_selectedAction);
+        }
+
+        unit.state.AP = unit.state.AP - actionPointCost;
+        checkAP();
+
+        if (currentAP != null)
+            currentAP.text = unit.state.AP.ToString();
+        if (APCost != null)
+            APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
+    }
 
 	public void NextAction ()
 	{
@@ -90,15 +140,22 @@ public class UnitModelDisplay : MonoBehaviour
 
 		var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
 
-		if (Action != null)
-			Action.text = unit.selectedAction;
+		if (ActionName != null)
+			ActionName.text = unit.selectedAction;
 		
 		if (ActionIcon != null)
 			ActionIcon.sprite = _selectedActionIcon;
 
-		if (onChangeAction != null)
+        if (APCost != null)
+            APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
+
+        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
+
+        if (onChangeAction != null)
 			onChangeAction.Invoke ();
-	}
+
+        checkAP();
+    }
 
 	public void PrevAction ()
 	{
@@ -115,14 +172,21 @@ public class UnitModelDisplay : MonoBehaviour
 
 		var _selectedActionIcon = Game.Register.GetActionIcon (unit.selectedAction);
 
-		if (Action != null)
-			Action.text = unit.selectedAction;
+		if (ActionName != null)
+			ActionName.text = unit.selectedAction;
 		if (ActionIcon != null)
 			ActionIcon.sprite = _selectedActionIcon;
 
-		if (onChangeAction != null)
+        if (APCost != null)
+            APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
+
+        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
+
+        if (onChangeAction != null)
 			onChangeAction.Invoke ();
-	}
+
+        checkAP();
+    }
 
 	void highlightSelectedWeapon ()
 	{
@@ -142,7 +206,14 @@ public class UnitModelDisplay : MonoBehaviour
 		unit.selectedWeapon = _weapon.name;
 		highlightSelectedWeapon ();
         BattleAction.GetLegalTargets(_weapon.name);
-	}
+
+        if (APCost != null)
+            APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
+
+        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
+
+        checkAP();
+    }
 
 	void onDestroy ()
 	{
@@ -164,6 +235,17 @@ public class UnitModelDisplay : MonoBehaviour
 		weaponDisplays.Clear ();
 
 	}
+
+    void checkAP()
+    {
+        actionPoints = unit.state.AP;
+        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
+
+        if (actionPointCost > actionPoints)
+            ActionButton.interactable = false;
+        else
+            ActionButton.interactable = true;
+    }
 
 
 

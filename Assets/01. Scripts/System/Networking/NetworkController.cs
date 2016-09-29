@@ -278,113 +278,20 @@ public class NetworkController :  NetworkBehaviour
 
     #endregion
 
-    #region Battle Turn Management
-
-    [Command]
-    public void Cmd_StartTurn()
-    {
-        Rpc_StartTurn();
-    }
+    #region Battle Turn Management  
 
     [ClientRpc]
-    public void Rpc_StartTurn()
+    public void Rpc_StartUnitTurn(Vector3 _unitPosition)
     {
-        var TurnOrder = Battle.TurnManager.TurnOrder;
-
-        BattleAction.ActiveUnit = TurnOrder[0];
-
-        if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
-        {
-            GetNextUnitforLocalPlayer();
-            Battle.LocalPlayerTurn = false;
-        }
-        else
-        {
-            BattleAction.NextUnit = null;
-            Battle.LocalPlayerTurn = true;
-        }
-
-        StartUnitTurn();
-    }
-
-    public void StartUnitTurn()
-    {
-        Game.BattleManager.OnUnitStartTrun();
+        Game.BattleManager.OnUnitStartTrun(_unitPosition);
     }
 
     [Command]
-    public void CmdNextUnit()
+    public void Cmd_EndTurn()
     {
         Game.BattleManager.OnUnitEndTrun();
-    }
-
-    [ClientRpc]
-    public void RpcNextUnit()
-    {
-        var TurnOrder = Battle.TurnManager.TurnOrder;
-
-        var i = TurnOrder.IndexOf(BattleAction.ActiveUnit);
-
-        if (i < TurnOrder.Count() - 1)
-        {
-            BattleAction.ActiveUnit = TurnOrder[i + 1];
-
-            if (BattleAction.ActiveUnit.state.Owner != Game.PlayerName)
-            {
-                GetNextUnitforLocalPlayer();
-                Battle.LocalPlayerTurn = false;
-            }
-            else
-            {
-                BattleAction.NextUnit = null;
-                Battle.LocalPlayerTurn = true;
-            }
-
-            StartUnitTurn();
-        }
-        else
-        {
-            Cmd_StartTurn();
-        }
-
-
-    }
-
-
-    void GetNextUnitforLocalPlayer()
-    {
-        var TurnOrder = Battle.TurnManager.TurnOrder;
-        var indexofActiveUnit = TurnOrder.IndexOf(BattleAction.ActiveUnit);
-
-        int unitsRemaining = TurnOrder.Count() + 1 - indexofActiveUnit;
-
-        for (int i = 1; i < unitsRemaining; i++)
-        {
-            int index = indexofActiveUnit + i;
-            var _unit = TurnOrder[index];
-
-            if (_unit.state.Owner == Game.PlayerName)
-            {
-                BattleAction.NextUnit = _unit;
-                return;
-            }
-        }
-
-        for (int i = 0; i < indexofActiveUnit; i++)
-        {
-            int index = i;
-            var _unit = TurnOrder[index];
-
-            if (_unit.state.Owner == Game.PlayerName)
-            {
-                BattleAction.NextUnit = _unit;
-                return;
-            }
-        }
-
-    }
-
-
+    }   
+    
     #endregion
 
 
@@ -402,34 +309,8 @@ public class NetworkController :  NetworkBehaviour
         Debug.Log("Loading Battle State");
         Game.BattleManager.battleGrid.LoadState(_battleState);
         Game.BattleManager.RecieveBattleState();
-
-
-
-        int i = 1;
-        Debug.Log("--- Turn Order ----");
-
-        foreach(var _unit in Battle.TurnManager.TurnOrder)
-        {
-            Debug.Log(_unit.DsiplayName + " " + "Position " + i.ToString());
-            i++;
-        }
-
     }
 
-
-    [Command]
-	public void CmdDeploy (string _Player)
-	{
-
-		RpcDeploy (_Player);
-    }
-
-	[ClientRpc]
-	public void RpcDeploy (string _Player)
-	{	
-		var _player = JsonUtility.FromJson<Player> (_Player);
-        BattleAction.DeployPlayerFleet(_player);
-	}
     #endregion
 
 

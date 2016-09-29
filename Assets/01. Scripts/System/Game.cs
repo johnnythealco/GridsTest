@@ -34,6 +34,8 @@ public class Game : MonoBehaviour
 
     public static bool isServer { get; set; }
 
+    public static bool isMultiplayer { get; set; }
+
     public List<string> BasicFleet;
 
     #endregion
@@ -52,8 +54,6 @@ public class Game : MonoBehaviour
 
 
 		DontDestroyOnLoad (gameObject);
-
-		Debug.Log ("Game Manager is Awake"); 
 	}
     
     public static Player GetPlayer(string _playerName)
@@ -80,7 +80,6 @@ public class Game : MonoBehaviour
   
     }
 
-
     public static Unit CreateUnit(UnitState _state)
     {
        
@@ -93,8 +92,6 @@ public class Game : MonoBehaviour
 
         return _unit;
     }
-
-
 
     #region Testing
     public static void AddBasicFleet(string _player)

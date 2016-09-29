@@ -54,11 +54,23 @@ public class Register : ScriptableObject
 		return result;
 	}
 
-	#endregion
+    public int GetWeaponAPcost(string _name)
+    {
+        int result = 0;
 
-	#region Actions
+        foreach (var weapon in Weapons)
+        {
+            if (weapon.name == _name)
+                result = weapon.APcost;
+        }
+        return result;
+    }
 
-	public List<UnitAction> Actions;
+    #endregion
+
+    #region Actions
+
+    public List<UnitAction> Actions;
 
 	public Sprite GetActionIcon (string _name)
 	{
@@ -96,6 +108,19 @@ public class Register : ScriptableObject
                 result = action.range; 
         }
         return result; 
+
+    }
+
+    public int GetActionAPCost(string _name)
+    {
+        int result = 0;
+
+        foreach (var action in Actions)
+        {
+            if (action.name == _name)
+                result = action.APCost;
+        }
+        return result;
 
     }
 
