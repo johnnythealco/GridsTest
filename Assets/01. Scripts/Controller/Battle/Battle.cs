@@ -411,8 +411,16 @@ public class Battle : MonoBehaviour
         if (Game.BattleManager.ActiveUnit == null)
             return;
 
+
         var start = Game.BattleManager.ActiveUnit.transform.position;
         var end = BattleAction.MoveDestination;
+
+  
+            if (Game.BattleManager.ActiveUnit.Size == unitSize.large)
+                battleGrid.SetLargeUnitAccessiblty(start, true);       
+
+
+
         BattleAction.MovePath = battleGrid.getGridPath(start, end);
 
         foreach(var step in BattleAction.MovePath)
@@ -422,7 +430,10 @@ public class Battle : MonoBehaviour
             stepCursor.transform.position = step;
             PathSteps.Add(stepCursor); 
         }
-        
+
+        if (Game.BattleManager.ActiveUnit.Size == unitSize.large)
+            battleGrid.SetLargeUnitAccessiblty(start, false);
+
 
     }
 

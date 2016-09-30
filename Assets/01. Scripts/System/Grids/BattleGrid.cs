@@ -163,6 +163,8 @@ namespace JK
 			public List<Vector3> getGridPath (Vector3 start, Vector3 end)
 			{
 				List<Vector3> path = new List<Vector3> ();
+
+
 				var _start = Map [start];
 				var _end = Map [end];
 
@@ -173,57 +175,24 @@ namespace JK
 					path.Add (Map [step]);
 				}
 
-				return path;
+                return path;
 			}
 
-            public bool CheckLargePath(Vector3 start, Vector3 end)
-            {
+            public bool PathBlocked_LargeUnit(List<Vector3> _path)
+            {      
 
-                var _start = Map[start];
-                var _end = Map[end];
-                var _path = getGridPath(_start, _end);
+                foreach(var worldpoint in _path)
+                {
+                    var step = Map[worldpoint];
+                    var neighbours = GetNeighbours(step);
 
-                if (_path == null)
-                    return false;
-
-                FlatHexPoint _startNorth = new FlatHexPoint(_start.X, _start.X + 1);
-                FlatHexPoint _endNorth = new FlatHexPoint(_end.X, _end.X + 1);
-                var _pathNorth = getGridPath(_startNorth, _endNorth);
-                if (_pathNorth == null)
-                    return false;
-
-                FlatHexPoint _startSouth = new FlatHexPoint(_start.X, _start.X - 1);
-                FlatHexPoint _endSouth = new FlatHexPoint(_end.X, _end.X - 1);
-                var _pathSouth = getGridPath(_startSouth, _endSouth);
-                if (_pathSouth == null)
-                    return false;
-
-
-                FlatHexPoint _startNorthEast = new FlatHexPoint(_start.X + 1, _start.X + 0);
-                FlatHexPoint _endNorthEast = new FlatHexPoint(_end.X + 1, _end.X + 0);
-                var _pathNorthEast = getGridPath(_startNorthEast, _endNorthEast);
-                if (_pathNorthEast == null)
-                    return false;
-
-                FlatHexPoint _startNorthWest = new FlatHexPoint(_start.X - 1, _start.X + 1);
-                FlatHexPoint _endNorthWest = new FlatHexPoint(_end.X - 1, _end.X + 1);
-                var _pathNorthWest = getGridPath(_startNorthWest, _endNorthWest);
-                if (_pathNorthWest == null)
-                    return false;
-
-                FlatHexPoint _startSouthWest = new FlatHexPoint(_start.X - 1, _start.X);
-                FlatHexPoint _endSouthWest = new FlatHexPoint(_end.X - 1, _end.X);
-                var _pathSouthWest = getGridPath(_startSouthWest, _endSouthWest);
-                if (_pathSouthWest == null)
-                    return false;
-
-                FlatHexPoint _startSouthEast = new FlatHexPoint(_start.X + 1, _start.X - 1);
-                FlatHexPoint _endSouthEast = new FlatHexPoint(_end.X + 1, _end.X - 1);
-                var _pathSouthEast = getGridPath(_startSouthEast, _endSouthEast);
-                if (_pathSouthEast == null)
-                    return false;
-
-                return true;
+                    foreach(var point in neighbours)
+                    {
+                        if (Grid[point].isAccessible == false)
+                            return true;
+                    }
+                }
+                return false;
 
             }
 
@@ -344,6 +313,40 @@ namespace JK
 
                 }
             }
+
+            public List<FlatHexPoint> GetNeighbours(FlatHexPoint _gridpoint)
+            {
+                List<FlatHexPoint> result = new List<FlatHexPoint>();
+
+                FlatHexPoint North = new FlatHexPoint(_gridpoint.X, _gridpoint.Y + 1);               
+                FlatHexPoint South = new FlatHexPoint(_gridpoint.X, _gridpoint.Y - 1);               
+                FlatHexPoint NorthEast = new FlatHexPoint(_gridpoint.X + 1, _gridpoint.Y + 0);
+                FlatHexPoint NorthWest = new FlatHexPoint(_gridpoint.X - 1, _gridpoint.Y + 1);               
+                FlatHexPoint SouthWest = new FlatHexPoint(_gridpoint.X - 1, _gridpoint.Y);               
+                FlatHexPoint SouthEast = new FlatHexPoint(_gridpoint.X + 1, _gridpoint.Y - 1);
+
+                if(Grid.Contains(North))
+                    result.Add(North);
+
+                if (Grid.Contains(South))
+                    result.Add(South);
+
+                if (Grid.Contains(NorthEast))
+                    result.Add(NorthEast);
+
+                if (Grid.Contains(NorthWest))
+                    result.Add(NorthWest);
+
+                if (Grid.Contains(SouthWest))
+                    result.Add(SouthWest);
+
+                if (Grid.Contains(SouthEast))
+                    result.Add(SouthEast);
+
+                return result;
+
+
+            }
          
 
 			public BattleCell GetCell (Vector3 _point)
@@ -371,13 +374,14 @@ namespace JK
 
                 if(_unit.Size == unitSize.large)
                 {
-                    var neighbors = Grid.GetNeighbors(Map[_point]);
+                    var neighbors = GetNeighbours(Map[_point]);
 
                     foreach(var fhp in neighbors)
                     {
-                        cell.unit = _unit;
-                        cell.contents = _contents;
-                        cell.isAccessible = false;
+
+                        Grid[fhp].unit = _unit;
+                        Grid[fhp].contents = _contents;
+                        Grid[fhp].isAccessible = false;
                     }
                 }
 
@@ -394,13 +398,13 @@ namespace JK
 
                 if (_unit.Size == unitSize.large)
                 {
-                    var neighbors = Grid.GetNeighbors(Map[_point]);
+                    var neighbors = GetNeighbours(Map[_point]);
 
                     foreach (var fhp in neighbors)
                     {
-                        cell.contents = CellContents.empty;
-                        cell.unit = null;
-                        cell.isAccessible = true;
+                        Grid[fhp].contents = CellContents.empty;
+                        Grid[fhp].unit = null;
+                        Grid[fhp].isAccessible = true;
                     }
 
                 }
@@ -408,39 +412,63 @@ namespace JK
 
 			public List<Vector3> GetRange (Vector3 _point, int _radius)
 			{
-				var gridPoint = Map [_point];
+                var gridPoint = Map[_point];
+
+                List<Vector3> result = new List<Vector3>();
+
+                var area = Algorithms.GetPointsInRange<BattleCell, FlatHexPoint>
+                                (Grid, gridPoint,
+                               JKCell => JKCell.isAccessible,
+                               (p, q) => 1,
+                               _radius
+                           );
+                foreach (var _gridPoint in area)
+                {
+                    var worldpoint = Map[_gridPoint];
+                    result.Add(worldpoint);
+                }
+                result.Remove(_point);
+
+                return result;
+
+			}
+
+            public List<Vector3> GetMovementRange(Vector3 _point, int _radius)
+            {
+
+                var gridPoint = Map[_point];
                 var cell = Grid[gridPoint];
                 var _unit = cell.unit;
 
-                List<Vector3> result = new List<Vector3> ();
+                List<Vector3> result = new List<Vector3>();
 
-                if(_unit.Size == unitSize.large)
+                if (_unit == null)
+                    return null;
+
+                if (_unit.Size == unitSize.large)
                 {
-                    var neighbors = Grid.GetNeighbors(gridPoint);
-                    _radius = _radius + 1;
+                    SetLargeUnitAccessiblty(_point, true);
+                }
+                var area = Algorithms.GetPointsInRange<BattleCell, FlatHexPoint>
+                                (Grid, gridPoint,
+                               JKCell => JKCell.isAccessible,
+                               (p, q) => 1,
+                               _radius
+                           );
+                foreach (var _gridPoint in area)
+                {
+                    var worldpoint = Map[_gridPoint];
+                    result.Add(worldpoint);
+                }
+                result.Remove(_point);
 
-                    foreach (var fhp in neighbors)
-                    {
-                        cell.isAccessible = true;
-                    }
-
+                if (_unit.Size == unitSize.large)
+                {
+                    SetLargeUnitAccessiblty(_point, true);
                 }
 
-
-				var area = Algorithms.GetPointsInRange<BattleCell, FlatHexPoint>
-								(Grid, gridPoint,
-					           JKCell => JKCell.isAccessible,
-					           (p, q) => 1,
-					           _radius
-				           );
-				foreach (var _gridPoint in area)
-				{
-					var worldpoint = Map [_gridPoint];
-					result.Add (worldpoint);
-				}
-				result.Remove (_point);
-				return result;
-			}
+                return result;
+            }
 
             public int GetDistance(Vector3 _start, Vector3 _destination)
             {
@@ -455,48 +483,50 @@ namespace JK
                 var _unitsInRange = new List<FlatHexPoint>();
                 var validTargets = new List<Vector3>();
 
-                foreach (var _gridPoint in Grid.AsEnumerable<FlatHexPoint>())
+                foreach (var _unit in Battle.AllUnits)
                 {
-                    if (_gridPoint.DistanceFrom(sourceGridPoint) <= _range)
+                    if (_unit.targetType == _targetType)
                     {
-                        if (Grid[_gridPoint].contents == CellContents.unit && Grid[_gridPoint].unit != null)
+                       if (Game.BattleManager.ActiveUnit.Size == unitSize.large)
+                            SetLargeUnitAccessiblty(Game.BattleManager.ActiveUnit.transform.position, true);
+
+                        if (_unit.Size == unitSize.large)
+                            SetLargeUnitAccessiblty(_unit.transform.position, true);
+
+
+
+                        var _targetGridPoint = Map[_unit.transform.position];
+                        var _path = Map.GetLine(sourceGridPoint, _targetGridPoint);
+                        _path.Remove(_targetGridPoint);
+                        _path.Remove(Map[_Source]);
+
+                        if (_path.Count() == 0)
                         {
-                            var _unit = Grid[_gridPoint].unit;
-                            if (_unit.targetType == _targetType)
+                            validTargets.Add(_unit.transform.position);
+                        }
+
+                        if (_path.Count() <= _range)
+                        {
+                            foreach (var step in _path)
                             {
-                                _unitsInRange.Add(_gridPoint);
+                                //if the path is blocked break out of the loop and go to check next unit;
+                                if (Grid[step].isAccessible == false)
+                                    break;
+
+                                validTargets.Add(_unit.transform.position);
                             }
                         }
-                    }
-                }
 
+                        if (Game.BattleManager.ActiveUnit.Size == unitSize.large)
+                            SetLargeUnitAccessiblty(Game.BattleManager.ActiveUnit.transform.position, false);
 
-                foreach (var _unit in _unitsInRange)
-                {
-                    var _path = Map.GetLine(sourceGridPoint, _unit);
-                    _path.Remove(_unit);
-                    _path.Remove(Map[_Source]);
+                        if (_unit.Size == unitSize.large)
+                            SetLargeUnitAccessiblty(_unit.transform.position, false);
 
-                    if (_path.Count() == 0)
-                    {
-                        validTargets.Add(Grid[_unit].transform.position);
-                        return validTargets;
                     }
 
-
-                    foreach (var step in _path)
-                    {
-                        //if the path is blocked break out of the loop and go to check next unit;
-                        if (Grid[step].isAccessible == false)
-                            break;
-
-                        validTargets.Add(Grid[_unit].transform.position);
-                    }
-                }
-                
-                
+                }                
                 return validTargets;
-
             }
 
             public void CreateSpawnPoints(int _buffer, int _deploymentAreaSize)
@@ -545,6 +575,34 @@ namespace JK
 
 
         }
+
+            public void SetLargeUnitAccessiblty(Vector3 _point,bool _value)
+            {
+                var _gridPoint = Map[_point];
+
+                Grid[_gridPoint].isAccessible = _value;
+
+                var _neighbours = GetNeighbours(_gridPoint);
+
+                foreach(var _neighbour in _neighbours)
+                {
+                    Grid[_neighbour].isAccessible = _value;
+                }
+
+            }
+
+            public bool getNeighboursAccessibility(Vector3 _point)
+            {
+                var _gridpoint = Map[_point];
+                var _neighbours = GetNeighbours(_gridpoint);
+
+                foreach(var _neighbour in _neighbours)
+                {
+                    if (Grid[_neighbour].isAccessible == false)
+                        return false;
+                }
+                return true;
+            }
 
             #endregion
 

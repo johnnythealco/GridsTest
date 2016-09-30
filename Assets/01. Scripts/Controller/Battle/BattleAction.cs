@@ -130,12 +130,27 @@ public class BattleAction : MonoBehaviour
             var i = rnd.Next(_DeploymentArea.Count());
             var _point = _DeploymentArea[i];
 
-            while (Game.BattleManager.battleGrid.GetCellAccessiblity(_point) == false)
+            if (_unit.Size == unitSize.large)
             {
-                i = rnd.Next(_DeploymentArea.Count());
-                _point = _DeploymentArea[i];
+                while (Game.BattleManager.battleGrid.getNeighboursAccessibility(_point) == false)
+                {
+                    i = rnd.Next(_DeploymentArea.Count());
+                    _point = _DeploymentArea[i];
+                }
+                _unit.Position = _point;
+
             }
-            _unit.Position = _point;        
+            else
+            {
+
+
+                while (Game.BattleManager.battleGrid.GetCellAccessiblity(_point) == false)
+                {
+                    i = rnd.Next(_DeploymentArea.Count());
+                    _point = _DeploymentArea[i];
+                }
+                _unit.Position = _point;
+            }        
         }
 
     }
@@ -150,7 +165,11 @@ public class BattleAction : MonoBehaviour
 
 	
         var _start = Game.BattleManager.ActiveUnit.transform.position;
-		var path = BattleGrid.getGridPath (_start, _end);
+
+        if (Game.BattleManager.ActiveUnit.Size == unitSize.large)
+            BattleGrid.SetLargeUnitAccessiblty(_start, true);
+
+        var path = BattleGrid.getGridPath (_start, _end);
 
 		foreach (var step in path)
 		{
@@ -165,7 +184,8 @@ public class BattleAction : MonoBehaviour
 
         BattleLog.Move(Game.BattleManager.ActiveUnit, _end);
 
-		return true;
+
+        return true;
 
 
 	}
@@ -219,8 +239,31 @@ public class BattleAction : MonoBehaviour
 
     public static void GetLegalMoves (Unit _unit)
 	{
-		BattleAction.LegalMoves = Game.BattleManager.battleGrid.GetRange (_unit.transform.position, _unit.Engines); 
+		BattleAction.LegalMoves = Game.BattleManager.battleGrid.GetMovementRange(_unit.transform.position, _unit.Engines); 
 
+        if(_unit.Size == unitSize.large)
+        {
+            var _position = Game.BattleManager.ActiveUnit.transform.position;
+            Game.BattleManager.battleGrid.SetLargeUnitAccessiblty(_position, true);
+
+            List<Vector3> blocked = new List<Vector3>();
+
+            foreach (var worldpoint in LegalMoves)
+            {
+                var _path = Game.BattleManager.battleGrid.getGridPath(_position, worldpoint);
+                bool pathBlocked = Game.BattleManager.battleGrid.PathBlocked_LargeUnit(_path);
+
+                if (pathBlocked)
+                    blocked.Add(worldpoint);
+            }
+
+            foreach(var blockedpoint in blocked)
+            {
+                LegalMoves.Remove(blockedpoint);
+            }
+
+            Game.BattleManager.battleGrid.SetLargeUnitAccessiblty(_position, false);
+        }
 	}
 
     public static void GetLegalTargets(string _Action)
