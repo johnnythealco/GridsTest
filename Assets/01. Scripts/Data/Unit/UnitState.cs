@@ -19,7 +19,7 @@ public class UnitState
     public int Max_AP;
     public int speed;
 	public int armour;
-	public int sheilds;
+	public int shields;
 	public int engines;
 	public int evasion;
 
@@ -34,10 +34,13 @@ public class UnitState
 		this.UnitType = _type.DsiplayName;
 		this.AP = _type.AP;
 		this.speed = _type.Speed;
-		this.engines = _type.Engines;
-		this.weapons = _type.Weapons;
+        this.armour = _type.Armour;
+        this.shields = _type.Shields;
+        this.engines = _type.Engines;
+        this.evasion = _type.Evasion;
+        this.weapons = _type.Weapons;
 		this.actions = _type.Actions;
-		this.armour = _type.Armour;
+		
         this.Max_AP = _type.AP * 2;
     }
 

@@ -38,8 +38,7 @@ public class UnitModelDisplay : MonoBehaviour
 
 	public void Prime (Unit _unitModel)
 	{
-		unit = _unitModel;
-        
+		unit = _unitModel;        
         clearWeaponDisplays ();
 
 		if (unit.selectedWeapon == null || unit.selectedWeapon == "")
@@ -60,31 +59,17 @@ public class UnitModelDisplay : MonoBehaviour
             currentAP.text = unit.state.AP.ToString();
         if (APCost != null)
             APCost.text = BattleAction.GetAPCost(unit.selectedAction).ToString();
-
-
-
 		if (Armour != null)
 			Armour.text = unit.Armour.ToString ();
 		if (Shields != null)
-			Shields.text = unit.Sheilds.ToString ();
+			Shields.text = unit.Shields.ToString ();
 
 
 		if (weaponsPanel != null)
 		{
-			foreach (var item in unit.Weapons)
-			{
-				var weapon = Game.Register.GetWeapon (item);
-				var weaponDsiplay = (WeaponDisplay)Instantiate (weaponDisplayPrefab);
-				weaponDsiplay.transform.SetParent (weaponsPanel, false);
-				weaponDsiplay.Prime (weapon);
-				weaponDsiplay.onClick += WeaponDsiplay_onClick;
-				weaponDisplays.Add (weaponDsiplay);
-			}
+            PrimeWeapons();
+        }
 
-			highlightSelectedWeapon ();
-		}
-        actionPoints = unit.state.AP;
-        actionPointCost = BattleAction.GetAPCost(unit.selectedAction);
         checkAP();
 
 
@@ -101,7 +86,6 @@ public class UnitModelDisplay : MonoBehaviour
             Prev_ActionButton.interactable = true;
 
         }
-
     }
 
     public void ActionClick()
@@ -245,6 +229,21 @@ public class UnitModelDisplay : MonoBehaviour
             ActionButton.interactable = false;
         else
             ActionButton.interactable = true;
+    }
+
+    void PrimeWeapons()
+    {
+        foreach (var item in unit.Weapons)
+        {
+            var weapon = Game.Register.GetWeapon(item);
+            var weaponDsiplay = (WeaponDisplay)Instantiate(weaponDisplayPrefab);
+            weaponDsiplay.transform.SetParent(weaponsPanel, false);
+            weaponDsiplay.Prime(weapon);
+            weaponDsiplay.onClick += WeaponDsiplay_onClick;
+            weaponDisplays.Add(weaponDsiplay);
+        }
+
+        highlightSelectedWeapon();
     }
 
 

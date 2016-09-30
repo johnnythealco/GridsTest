@@ -20,7 +20,7 @@ public class Unit : MonoBehaviour
 	public int Armour;
 	public ArmourType ArmourType;
 
-	public int Sheilds;
+	public int Shields;
 	public int Engines;
 	public int Evasion;
 
@@ -99,27 +99,24 @@ public class Unit : MonoBehaviour
 		var weapon = Game.Register.GetWeapon (_weapon);
 		var weaponDamage = weapon.damage;
 
-
-
-
+        
 		switch (weapon.damageType)
 		{
 		case DamageType.laser:
 			{
 				takeLaserDamage (weaponDamage);
-				JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " +  "Laser damage :" + weaponDamage.ToString ());
+				
 			}
 			break;
 		case DamageType.kinetic:
 			{
-				takeKineticDamage (weaponDamage);
-                    JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " + " Kinetic damage :" + weaponDamage.ToString ());
+				takeKineticDamage (weaponDamage);                    
 			}
 			break;
 		case DamageType.plasma:
 			{
 				takePlasmaDamage (weaponDamage);
-                    JKLog.Log (this.DsiplayName + "(" + this.state.Owner + ") " + " Plasma damage :" + weaponDamage.ToString ());
+                    
 			}
 			break;
 		}
@@ -140,159 +137,233 @@ public class Unit : MonoBehaviour
 	void takeLaserDamage (int _damage)
 	{
 
-		var sheilds = state.sheilds;
+		var Shields = state.shields;
+		var armourType = state.armourType;
+        float shieldDefense = 1f;
+        float lightArmourDefense = 1f;
+        float mediumArmourDefense = 0.8f;
+        float heavyArmourDefense = 0.5f;
 
-		var armourType = state.armourType; 
-		
-		if (sheilds > 0)
-		{
-			{
-				sheilds = sheilds - _damage;
-				Debug.Log ("");
+        int shieldDamage = 0;
+        int armourDamage = 0;
 
-			}
-			if (sheilds < 0)
-			{
-				var extraDamage = -sheilds;
-				switch (armourType)
-				{
-				case ArmourType.light:
-					{
-						if ((extraDamage - 1) > 0)
-							state.armour = state.armour - (extraDamage - 1);
-					}
-					break;
-				case ArmourType.medium:
-					{
-						if ((extraDamage - 10) > 0)
-							state.armour = state.armour - (extraDamage - 10);
-					}
-					break;
-				case ArmourType.heavy:
-					{
-						if ((extraDamage - 100) > 0)
-							state.armour = state.armour - (extraDamage - 100);
-					}
-					break;
+        #region Shields Remaininag
+        if (Shields > 0)
+        {               
+            shieldDamage = (int)(_damage * shieldDefense);
+            this.Shields = this.Shields - shieldDamage;
+                
+            if (Shields < 0)
+            {
+                var extraDamage = -Shields;
+                switch (armourType)
+                {
+                    case ArmourType.light:
+                        {
+                            armourDamage = (int)(extraDamage * lightArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                    case ArmourType.medium:
+                        {
+                            armourDamage = (int)(extraDamage * mediumArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                    case ArmourType.heavy:
+                        {
+                            armourDamage = (int)(extraDamage * heavyArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                }
+            }            
+        }
+        #endregion
 
-				}
-			}
+        #region No Shields Remaining
+        else
+        {
+            switch (armourType)
+            {
+                case ArmourType.light:
+                    {
+                        armourDamage = (int)(_damage * lightArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.medium:
+                    {
+                        armourDamage = (int)(_damage * mediumArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.heavy:
+                    {
+                        armourDamage = (int)(_damage * heavyArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+            }
+        }
+        #endregion
 
-		} else
-		{
+        BattleLog.Damage(this, "Laser", _damage, shieldDamage, armourDamage);
 
-			switch (armourType)
-			{
-			case ArmourType.light:
-				{
-					if ((_damage - 1) > 0)
-						state.armour = state.armour - (_damage - 1);
-				}
-				break;
-			case ArmourType.medium:
-				{
-					if ((_damage - 10) > 0)
-						state.armour = state.armour - (_damage - 10);
-				}
-				break;
-			case ArmourType.heavy:
-				{
-					if ((_damage - 100) > 0)
-						state.armour = state.armour - (_damage - 100);
-				}
-				break;
+    }
 
-			}
-		}
-	}
-
-	void takeKineticDamage (int _damage)
+    void takeKineticDamage (int _damage)
 	{
+        var Shields = state.shields;
+        var armourType = state.armourType;
+        float shieldDefense = 0.5f;
+        float lightArmourDefense = 1f;
+        float mediumArmourDefense = 0.9f;
+        float heavyArmourDefense = 0.6f;
 
-		var sheilds = state.sheilds;
+        int shieldDamage = 0;
+        int armourDamage = 0;
 
-		var armourType = state.armourType; 
+        #region Shields Remaininag
+        if (Shields > 0)
+        {
 
-		if (sheilds > 0)
-		{
-			{
-				sheilds = sheilds - (_damage / 2);
-	
-			}
-		} else
-		{
-			
-			switch (armourType)
-			{
-			case ArmourType.light:
-				{
-					if ((_damage - 1) > 0)
-						state.armour = state.armour - (_damage - 1);
-				}
-				break;
-			case ArmourType.medium:
-				{
-					if ((_damage - 10) > 0)
-						state.armour = state.armour - (_damage - 10);
-				}
-				break;
-			case ArmourType.heavy:
-				{
-					if ((_damage - 100) > 0)
-						state.armour = state.armour - (_damage - 100);
-				}
-				break;
+        shieldDamage = (int)(_damage * shieldDefense);
+        this.Shields = this.Shields - shieldDamage;
 
-			}
-		}
+        }
+        #endregion
 
-	}
+        #region No Shields Remaining
+        else
+        {
+            switch (armourType)
+            {
+                case ArmourType.light:
+                    {
+                        armourDamage = (int)(_damage * lightArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.medium:
+                    {
+                        armourDamage = (int)(_damage * mediumArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.heavy:
+                    {
+                        armourDamage = (int)(_damage * heavyArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+            }
+        }
+        #endregion
+
+        BattleLog.Damage(this, "Kinetic", _damage, shieldDamage, armourDamage);
+
+    }
 
 	void takePlasmaDamage (int _damage)
 	{
+        var Shields = state.shields;
+        var armourType = state.armourType;
 
-		var sheilds = state.sheilds;
+        float shieldDefense = 0.8f;
+        float lightArmourDefense = 1f;
+        float mediumArmourDefense = 1f;
+        float heavyArmourDefense = 0.8f;
 
-		var armourType = state.armourType; 
+        int shieldDamage = 0;
+        int armourDamage = 0;
 
-		if (sheilds > 0)
-		{
-			{
-				sheilds = sheilds - (_damage / 2);
+        #region Shields Remaininag
+        if (Shields > 0)
+        {
+           
+            shieldDamage = (int)(_damage * shieldDefense);
+            this.Shields = this.Shields - shieldDamage;
+                
+            if (Shields < 0)
+            {
+                var extraDamage = -Shields;
+                switch (armourType)
+                {
+                    case ArmourType.light:
+                        {
+                            armourDamage = (int)(extraDamage * lightArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                    case ArmourType.medium:
+                        {
+                            armourDamage = (int)(extraDamage * mediumArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                    case ArmourType.heavy:
+                        {
+                            armourDamage = (int)(extraDamage * heavyArmourDefense);
+                            if (armourDamage > 0)
+                                state.armour = state.armour - armourDamage;
+                        }
+                        break;
+                }
+            }
+            
+        }
+        #endregion
 
-			}
-		} else
-		{
+        #region No Shields Remaining
+        else
+        {
+            switch (armourType)
+            {
+                case ArmourType.light:
+                    {
+                        armourDamage = (int)(_damage * lightArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.medium:
+                    {
+                        armourDamage = (int)(_damage * mediumArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+                case ArmourType.heavy:
+                    {
+                        armourDamage = (int)(_damage * heavyArmourDefense);
+                        if (armourDamage > 0)
+                            state.armour = state.armour - armourDamage;
+                    }
+                    break;
+            }
+        }
+        #endregion
 
-			switch (armourType)
-			{
-			case ArmourType.light:
-				{
-					if ((_damage - 1) > 0)
-						state.armour = state.armour - (_damage - 1);
-				}
-				break;
-			case ArmourType.medium:
-				{
-					if ((_damage - 10) > 0)
-						state.armour = state.armour - (_damage - 10);
-				}
-				break;
-			case ArmourType.heavy:
-				{
-					if ((_damage - 100) > 0)
-						state.armour = state.armour - (_damage - 100);
-				}
-				break;
+        BattleLog.Damage(this, "Plasma", _damage, shieldDamage, armourDamage);
 
-			}
-		}
 
-	}
+    }
 
-	#endregion
+    #endregion
 
-	public void DestroyUnit ()
+    public void DestroyUnit ()
 	{
 		Destroy (gameObject);
 	}

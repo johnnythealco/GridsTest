@@ -72,7 +72,7 @@ public class BattleAction : MonoBehaviour
             unitModel.selectedAction = unitModel.Actions.First();
 
             BattleGrid.RegisterUnit(_position, unitModel, CellContents.unit);
-            JKLog.Log(_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString());
+            BattleLog.Log(_unit.Owner + " Deployed a " + _unit.UnitType + " to " + _position.ToString());
 
         }
     }
@@ -104,12 +104,12 @@ public class BattleAction : MonoBehaviour
 			break;
 		case "Evade":
 			{
-				JKLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction); 
+				BattleLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction); 
 			}
 			break;
 		case "End Turn":
 			{ 
-				JKLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction);
+				BattleLog.Log (Game.BattleManager.ActiveUnit.DsiplayName + " " + Game.BattleManager.ActiveUnit.selectedAction);
                 Game.NetworkController.Cmd_EndTurn();
 			}
 			break;
@@ -156,13 +156,14 @@ public class BattleAction : MonoBehaviour
 		{
 			BattleGrid.UnRegisterObject (Game.BattleManager.ActiveUnit.transform.position);
 			BattleGrid.RegisterUnit (step, Game.BattleManager.ActiveUnit, CellContents.unit);
-            Game.BattleManager.ActiveUnit.transform.position = step;
-			JKLog.Log (Game.BattleManager.ActiveUnit.faction + " " + Game.BattleManager.ActiveUnit.DsiplayName + " Move to " + step.ToString ());
+            Game.BattleManager.ActiveUnit.transform.position = step;			
 		}
 
         battleManager.ClearPathSteps();
         GetLegalMoves(Game.BattleManager.ActiveUnit);
         GetLegalTargets("Attack");
+
+        BattleLog.Move(Game.BattleManager.ActiveUnit, _end);
 
 		return true;
 
@@ -177,15 +178,15 @@ public class BattleAction : MonoBehaviour
 		var BattleGrid = Game.BattleManager.battleGrid;
         var _target = BattleGrid.GetCell (_targetPosition).unit;
 
+        BattleLog.Attack(Game.BattleManager.ActiveUnit, _target);
+
         var destroyed = _target.HitBy (_weapon);
 
-
-
-		if (destroyed)
+        if (destroyed)
 		{
 			BattleGrid.UnRegisterObject (_target.transform.position);
 			_target.DestroyUnit ();
-			JKLog.Log (_target.faction + " " + _target.DsiplayName + " was destroyed! : ( ");
+			BattleLog.Log (_target.faction + " " + _target.DsiplayName + " was destroyed! : ( ");
 
 		}
 
@@ -193,8 +194,6 @@ public class BattleAction : MonoBehaviour
 
 		return true;
 	}
-
-
 
     #endregion
 
@@ -272,35 +271,8 @@ public class BattleAction : MonoBehaviour
                 }
                 break;
         }
-    }
-    
-	static List<Vector3> getEnemyTargetsInRange (Unit _unit, Weapon _weapon)
-	{
-		List<Vector3> result = new List<Vector3> ();
+    }    
 
-		var _grid = Game.BattleManager.battleGrid;
-		var occupiedCells = _grid.occupiedCells;
-
-
-		foreach (var _cell in occupiedCells)
-		{
-			if (_cell.contents == CellContents.unit && _cell.unit != null)
-			{
-				if (_cell.unit.faction != _unit.faction)
-				{
-					var _targetPostion = _cell.transform.position;
-					var _attackerPosition = _unit.transform.position;  
-					var distance = _grid.getPathToTarget (_attackerPosition, _targetPostion).Count (); 
-					if (distance <= _weapon.range)
-					{
-						result.Add (_targetPostion);
-					}
-				}	
-			}
-		}
-		return result;
-
-	}
 
 	#endregion
 

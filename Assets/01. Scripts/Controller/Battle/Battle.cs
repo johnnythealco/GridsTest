@@ -132,12 +132,12 @@ public class Battle : MonoBehaviour
 
         while (!Game.NetworkManager.AllPlayersReady)
         {
-            JKLog.Log("Waiting for Network Players!");
+            BattleLog.Log("Waiting for Network Players!");
             yield return new WaitForSeconds(1);
 
         }
 
-        JKLog.Log("All Players Ready!");
+        BattleLog.Log("All Players Ready!");
         if (Game.isMultiplayer)
         {
             SendBattleState();
@@ -155,11 +155,11 @@ public class Battle : MonoBehaviour
 
         while (!Game.NetworkManager.DeploymentComplete)
         {
-            JKLog.Log("Waiting for Network Players!");
+            BattleLog.Log("Waiting for Network Players!");
             yield return new WaitForSeconds(1);
 
         }
-        JKLog.Log("Deployment Complete");
+        BattleLog.Log("Deployment Complete");
         StartTurn();
     }
 
