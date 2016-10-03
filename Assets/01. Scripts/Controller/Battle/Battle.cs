@@ -23,7 +23,7 @@ public class Battle : MonoBehaviour
     public BattleGrid battleGrid{ get; set; }
 
 	public static List<Unit> AllUnits{ get; set; }
-
+    public static List<Unit> AllEnemies { get; set;}
     public static bool LocalPlayerTurn { get; set; }
     #endregion
 
@@ -49,7 +49,9 @@ public class Battle : MonoBehaviour
 	void Start ()
 	{
         Game.BattleManager = this;
-       
+
+        AllEnemies = new List<Unit>();
+
         battleGrid = Instantiate (flatHexPrefab) as BattleGrid;
 		battleGrid.Setup();
 		battleGrid.onClickCell += BattleGrid_onClickCell;
@@ -285,6 +287,8 @@ public class Battle : MonoBehaviour
 	{
         ClearActiveUnit();
         ClearPathSteps();
+        getAllEnemies();
+        FaceClosestEnemy_AllUnits();
         var _unit = GetUnit(_unitPosition);
         ActiveUnit = _unit;     
         LocalPlayerTurn = _unit.state.Owner == Game.PlayerName;
@@ -590,28 +594,44 @@ public class Battle : MonoBehaviour
         return _cell.unit;
     }
 
-    //bool CheckIfGameOver(out string playerName)
-    //{
-    //    List<string> remainingPlayers = new List<string>();
+    public Unit FindClosestEnemy(Vector3 _Position)
+    {
+        int _closestDistance = 5000000;
+        Unit _closestEnemy = null;
 
-    //    foreach(var unit in AllUnits)
-    //    {
-    //        if (!remainingPlayers.Contains(unit.state.Owner))
-    //            remainingPlayers.Add(unit.state.Owner);             
+        foreach(var _enemy in AllEnemies)
+        {
+            var _distance = battleGrid.GetDistance(_Position, _enemy.transform.position);
 
-    //    }
+            if (_distance < _closestDistance)
+                _closestEnemy = _enemy;
+        }
 
-    //    if(remainingPlayers.Count() == 1)
-    //    {
-            
-    //        return true;
-    //    }
-    //    else
-    //    {
-    //        return false;
-    //    }
-    //}
+        return _closestEnemy; 
     
+    }
+
+    void getAllEnemies()
+    {
+        AllEnemies.Clear();
+
+        foreach (var _unit in AllUnits)
+        {
+            if (_unit.state.Owner != Game.PlayerName)
+                AllEnemies.Add(_unit);
+        }
+    }
+    
+    void FaceClosestEnemy_AllUnits()
+    {
+        foreach(var _unit in AllUnits)
+        {
+            var _enemy = FindClosestEnemy(_unit.transform.position);
+
+            _unit.transform.forward = _enemy.transform.position;
+        }
+    }
+
     #endregion
 
 

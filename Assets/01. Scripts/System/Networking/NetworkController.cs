@@ -284,6 +284,8 @@ public class NetworkController :  NetworkBehaviour
     public void Rpc_StartUnitTurn(Vector3 _unitPosition)
     {
         Game.BattleManager.OnUnitStartTrun(_unitPosition);
+            
+
     }
 
     [Command]

@@ -347,9 +347,8 @@ namespace JK
 
 
             }
-         
-
-			public BattleCell GetCell (Vector3 _point)
+            
+         	public BattleCell GetCell (Vector3 _point)
 			{
 				return Grid [Map [_point]];
 			}
@@ -480,8 +479,7 @@ namespace JK
                 
                 var sourceGridPoint = Map[_Source];
 
-                var _unitsInRange = new List<FlatHexPoint>();
-                var validTargets = new List<Vector3>();
+               var validTargets = new List<Vector3>();
 
                 foreach (var _unit in Battle.AllUnits)
                 {
