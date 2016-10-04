@@ -14,7 +14,7 @@ public class Battle : MonoBehaviour
     public BattleGrid flatHexPrefab;
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
-	public CameraCTRL cameraCTRL;
+	public CameraController cameraCTRL;
     
     #endregion
 
@@ -41,7 +41,7 @@ public class Battle : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if(Input.GetKeyDown(KeyCode.Escape))
             Game.NetworkController.Cmd_EndTurn();
     }
 
@@ -313,7 +313,7 @@ public class Battle : MonoBehaviour
             unitDisplay.Prime(ActiveUnit);
             unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
             highlightActiveUnit(_point);
-            cameraCTRL.CentreOn(_point);
+            cameraCTRL.CentreOn(_point);   
         }
         else
         {
@@ -627,8 +627,8 @@ public class Battle : MonoBehaviour
         foreach(var _unit in AllUnits)
         {
             var _enemy = FindClosestEnemy(_unit.transform.position);
-
-            _unit.transform.forward = _enemy.transform.position;
+            if(_enemy != null)
+                _unit.transform.forward = _enemy.transform.position;
         }
     }
 

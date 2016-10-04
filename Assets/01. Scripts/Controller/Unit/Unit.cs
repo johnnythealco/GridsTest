@@ -365,7 +365,13 @@ public class Unit : MonoBehaviour
 
     public void DestroyUnit ()
 	{
-		Destroy (gameObject);
+        if (Battle.AllUnits.Contains(this))
+            Battle.AllUnits.Remove(this);
+
+        if (Battle.AllEnemies.Contains(this))
+            Battle.AllEnemies.Remove(this);
+
+        Destroy (gameObject);
 	}
 
 	#endregion

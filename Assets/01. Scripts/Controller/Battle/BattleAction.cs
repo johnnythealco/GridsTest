@@ -183,6 +183,7 @@ public class BattleAction : MonoBehaviour
         GetLegalTargets("Attack");
 
         BattleLog.Move(Game.BattleManager.ActiveUnit, _end);
+        battleManager.cameraCTRL.CentreOn(_end);
 
 
         return true;
