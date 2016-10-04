@@ -21,6 +21,9 @@ public class CameraController : MonoBehaviour {
     public static CameraController camController;
     public Vector3 Focus { get; set; }
 
+    public bool TopDown;
+    public bool screenEdgeMoveEnabled;
+
    Vector3 offSet;
    Quaternion InitRotation;
 
@@ -42,61 +45,88 @@ public class CameraController : MonoBehaviour {
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.F1))
+            screenEdgeMoveEnabled = !screenEdgeMoveEnabled;
 
         #region Movement
-        if (Input.GetKey("d") || Input.mousePosition.x >= Screen.width * (1 - ScrollEdge))
+        if (Input.GetKey("d"))
         {
             transform.Translate(Vector3.right * Time.deltaTime * ScrollSpeed, Space.World);
         }
-        else if (Input.GetKey("a") || Input.mousePosition.x <= Screen.width * ScrollEdge)
+        else if (Input.GetKey("a"))
         {
             transform.Translate(Vector3.right * Time.deltaTime * -ScrollSpeed, Space.World);
         }
 
-        if (Input.GetKey("w") || Input.mousePosition.y >= Screen.height * (1 - ScrollEdge))
+        if (Input.GetKey("w") )
         {
             transform.Translate(Vector3.forward * Time.deltaTime * ScrollSpeed, Space.World);
         }
-        else if (Input.GetKey("s") || Input.mousePosition.y <= Screen.height * ScrollEdge)
+        else if (Input.GetKey("s"))
         {
             transform.Translate(Vector3.forward * Time.deltaTime * -ScrollSpeed, Space.World);
+        }
+
+        if (screenEdgeMoveEnabled)
+        {
+            if (Input.mousePosition.x >= Screen.width * (1 - ScrollEdge))
+            {
+                transform.Translate(Vector3.right * Time.deltaTime * ScrollSpeed, Space.World);
+            }
+            else if (Input.mousePosition.x <= Screen.width * ScrollEdge)
+            {
+                transform.Translate(Vector3.right * Time.deltaTime * -ScrollSpeed, Space.World);
+            }
+
+            if (Input.mousePosition.y >= Screen.height * (1 - ScrollEdge))
+            {
+                transform.Translate(Vector3.forward * Time.deltaTime * ScrollSpeed, Space.World);
+            }
+            else if (Input.mousePosition.y <= Screen.height * ScrollEdge)
+            {
+                transform.Translate(Vector3.forward * Time.deltaTime * -ScrollSpeed, Space.World);
+            }
         }
         #endregion
 
         #region Roation
-        if (Input.GetKey("q"))
+
+        if (!TopDown)
         {
-            transform.RotateAround(Focus, -transform.forward, dragSpeed + 20f * Time.deltaTime);
-        }
+            if (Input.GetKey("q"))
+            {
+                transform.RotateAround(Focus, -transform.forward, dragSpeed + 20f * Time.deltaTime);
+            }
 
-        if (Input.GetKey("e"))
-        {
-            transform.RotateAround(Focus, transform.forward, dragSpeed + 20f * Time.deltaTime);
-        }
-
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            dragOrigin = Input.mousePosition;
-            return;
-        }
-
-        if(Input.GetKey("mouse 1"))
-        {
-            Vector3 pos = Input.mousePosition - dragOrigin;
-
-            var verticalRotation = pos.y * dragSpeed;
+            if (Input.GetKey("e"))
+            {
+                transform.RotateAround(Focus, transform.forward, dragSpeed + 20f * Time.deltaTime);
+            }
 
 
-            transform.RotateAround(Focus, -transform.right, verticalRotation * Time.deltaTime);
+            if (Input.GetMouseButtonDown(1))
+            {
+                dragOrigin = Input.mousePosition;
+                return;
+            }
+
+            if (Input.GetKey("mouse 1"))
+            {
+                Vector3 pos = Input.mousePosition - dragOrigin;
+
+                var verticalRotation = pos.y * dragSpeed;
+
+
+                transform.RotateAround(Focus, -transform.right, verticalRotation * Time.deltaTime);
 
 
 
-            var HorizontalRotation = pos.x * dragSpeed;
+                var HorizontalRotation = pos.x * dragSpeed;
 
 
-            transform.RotateAround(Focus, transform.up, HorizontalRotation * Time.deltaTime);
+                transform.RotateAround(Focus, transform.up, HorizontalRotation * Time.deltaTime);
 
+            }
         }
         #endregion
 

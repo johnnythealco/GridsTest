@@ -14,8 +14,9 @@ public class Battle : MonoBehaviour
     public BattleGrid flatHexPrefab;
 	public SpriteRenderer cellBorder;
 	public UnitModelDisplay unitDisplay;
-	public CameraController cameraCTRL;
-    
+	public Camera TopDownCam;
+    public Camera FreeCam;
+
     #endregion
 
     #region Properties
@@ -25,7 +26,9 @@ public class Battle : MonoBehaviour
 	public static List<Unit> AllUnits{ get; set; }
     public static List<Unit> AllEnemies { get; set;}
     public static bool LocalPlayerTurn { get; set; }
-    #endregion
+    public static Camera ActiveBattleCam { get; set; }
+
+        #endregion
 
     #region private
 
@@ -41,8 +44,26 @@ public class Battle : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
             Game.NetworkController.Cmd_EndTurn();
+
+        if (Input.GetKeyDown(KeyCode.LeftAlt))
+        {
+            if(TopDownCam.enabled)
+            {
+                TopDownCam.enabled = false;
+                FreeCam.enabled = true;
+                ActiveBattleCam = FreeCam;
+                ActiveBattleCam.GetComponent<CameraController>().ResetOn(ActiveUnit.transform.position);
+            }
+            else
+            {
+                TopDownCam.enabled = true;
+                FreeCam.enabled = false;
+                ActiveBattleCam = TopDownCam;
+                 
+            }
+        }
     }
 
    
@@ -51,6 +72,10 @@ public class Battle : MonoBehaviour
         Game.BattleManager = this;
 
         AllEnemies = new List<Unit>();
+
+        TopDownCam.enabled = true;
+        ActiveBattleCam = TopDownCam;
+        FreeCam.enabled = false;
 
         battleGrid = Instantiate (flatHexPrefab) as BattleGrid;
 		battleGrid.Setup();
@@ -286,10 +311,10 @@ public class Battle : MonoBehaviour
     public void OnUnitStartTrun (Vector3 _unitPosition)
 	{
         ClearActiveUnit();
-        ClearPathSteps();
-        getAllEnemies();
+        ClearPathSteps();        
         FaceClosestEnemy_AllUnits();
         var _unit = GetUnit(_unitPosition);
+        _unit.gameObject.GetComponentInChildren<SpriteRenderer>().enabled = false;
         ActiveUnit = _unit;     
         LocalPlayerTurn = _unit.state.Owner == Game.PlayerName;
 
@@ -313,18 +338,21 @@ public class Battle : MonoBehaviour
             unitDisplay.Prime(ActiveUnit);
             unitDisplay.onChangeAction += ActiveUnit_onChangeAction;
             highlightActiveUnit(_point);
-            cameraCTRL.CentreOn(_point);   
+            TopDownCam.gameObject.GetComponent<CameraController>().CentreOn(_point);
+            FreeCam.GetComponent<CameraController>().CentreOn(_point);   
         }
         else
         {
             var _nextUnit = GetNextUnitforLocalPlayer();
             unitDisplay.Prime(_nextUnit);
-            cameraCTRL.CentreOn(_nextUnit.transform.position);
+            TopDownCam.GetComponent<CameraController>().CentreOn(_nextUnit.transform.position);
+            FreeCam.GetComponent<CameraController>().CentreOn(_nextUnit.transform.position);
         }       
     }
 
 	public void OnUnitEndTrun ()
 	{
+        ActiveUnit.gameObject.GetComponentInChildren<SpriteRenderer>().enabled = true;
         var i = AllUnits.IndexOf(ActiveUnit);
 
         if (i < AllUnits.Count()-1)
@@ -474,6 +502,7 @@ public class Battle : MonoBehaviour
 
     #region Utility Functions
 
+    
     public Unit CreateUnit(UnitState _state)
     {
 
@@ -594,39 +623,34 @@ public class Battle : MonoBehaviour
         return _cell.unit;
     }
 
-    public Unit FindClosestEnemy(Vector3 _Position)
+    public Unit FindClosestEnemy(Unit _Unit)
     {
         int _closestDistance = 5000000;
         Unit _closestEnemy = null;
 
-        foreach(var _enemy in AllEnemies)
+        foreach (var _target in AllUnits)
         {
-            var _distance = battleGrid.GetDistance(_Position, _enemy.transform.position);
+            if (_target.state.Owner != _Unit.state.Owner)
+            { 
+
+            var _distance = battleGrid.GetDistance(_Unit.transform.position, _target.transform.position);
 
             if (_distance < _closestDistance)
-                _closestEnemy = _enemy;
+                _closestEnemy = _target;
+            }
         }
 
         return _closestEnemy; 
     
     }
 
-    void getAllEnemies()
-    {
-        AllEnemies.Clear();
 
-        foreach (var _unit in AllUnits)
-        {
-            if (_unit.state.Owner != Game.PlayerName)
-                AllEnemies.Add(_unit);
-        }
-    }
     
     void FaceClosestEnemy_AllUnits()
     {
         foreach(var _unit in AllUnits)
         {
-            var _enemy = FindClosestEnemy(_unit.transform.position);
+            var _enemy = FindClosestEnemy(_unit);
             if(_enemy != null)
                 _unit.transform.forward = _enemy.transform.position;
         }

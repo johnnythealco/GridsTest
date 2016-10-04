@@ -264,7 +264,7 @@ namespace JK
 					
 
 				//Determin What Cell the mouse is currently over
-				var ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+				var ray = Battle.ActiveBattleCam.ScreenPointToRay (Input.mousePosition);
 				RaycastHit hit;
 
 				if (Physics.Raycast (ray, out hit))
